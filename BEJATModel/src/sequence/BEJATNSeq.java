@@ -1,3 +1,5 @@
+package sequence;
+
 public abstract class BEJATNSeq extends BEJATSeq {
 
     public static final byte ELEMENT_SIZE = 2;
@@ -39,7 +41,31 @@ public abstract class BEJATNSeq extends BEJATSeq {
         }
     }
 
-    public long[] convert(String... input) {
+    public long[] convert(String input) {
+        byte bits = getBits();
+        byte density = getDensity();
+
+        int n = input.length();
+
+        int l = n/32 + ((n%32 > 0) ? 1 : 0);
+
+        long[] output = new long[l];
+
+        int sj = 0;
+        long temp;
+
+        for (int i = 0; i < l; i++) {
+            temp = 0;
+            for (int j = 0; j < 32; j++) {
+                temp = (temp << 2) | (charToBinary(input.charAt(sj++))); // mask &
+            }
+            output[i] = temp;
+        }
+
+        return output;
+    }
+
+    /*public long[] convert(String... input) {
         byte bits = ELEMENT_SIZE;
         byte density = (byte) (WORD_SIZE / bits);
 
@@ -75,33 +101,5 @@ public abstract class BEJATNSeq extends BEJATSeq {
         }
 
         return output;
-    }
-
-    public long[] convert(String input) {
-        byte bits = ELEMENT_SIZE;
-        byte density = (byte) (WORD_SIZE / bits);
-
-        //byte mask = 1;
-
-        //for (int i = 1; i < bits; i++) mask = (byte) (mask << 1 + 1);
-
-        int n = input.length();
-
-        int l = n/density + ((n%density > 0) ? 1 : 0);
-
-        long[] output = new long[l];
-
-        int sj = 0;
-        long temp;
-
-        for (int i = 0; i < l; i++) {
-            temp = 0;
-            for (int j = 0; j < density; j++) {
-                temp = (temp << bits) | (charToBinary(input.charAt(sj++))); // mask &
-            }
-            output[i] = temp;
-        }
-
-        return output;
-    }
+    }//*/
 }
