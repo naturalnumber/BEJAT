@@ -6,15 +6,20 @@ public class BEJATDNASeq extends BEJATNSeq {
     private static final String[] LEXICON_SA = {"G", "C", "A", "T"};
     private static final String LEXICON_S = "GCAT";
 
-    public BEJATDNASeq(String sequence) {
-        super(sequence);
+    public BEJATDNASeq(String header, String sequence) {
+        super(header, sequence);
     }
 
-    public BEJATDNASeq(String[] sequence) {
-        super(sequence);
+    public BEJATDNASeq(String header, String[] sequence) {
+        super(header, sequence);
     }
 
+    @Override
     public byte charToBinary(char c) {
+        return interpret(c);
+    }
+
+    public static byte interpret(char c) {
         switch (c) {
             case 'G':
             case 'g':

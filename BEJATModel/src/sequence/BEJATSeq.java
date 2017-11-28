@@ -1,11 +1,15 @@
 package sequence;
 
+import java.io.Serializable;
 import java.security.InvalidParameterException;
+import java.util.stream.IntStream;
 
-public abstract class BEJATSeq {
+public abstract class BEJATSeq implements CharSequence, Serializable, Cloneable {
 
     public static final byte WORD_SIZE = 64;
+    public static final char INVALID = '?';
 
+    protected final String header;
     protected final String sequence;
     protected final long[] data;
     protected final int length;
@@ -13,7 +17,8 @@ public abstract class BEJATSeq {
     protected final byte density;
     protected final long mask;
 
-    protected BEJATSeq(String sequence) {
+    protected BEJATSeq(String header, String sequence) {
+        this.header = header;
         this.sequence = clean(this, sequence);
         this.length = this.sequence.length();
         this.data = convert(this.sequence);
@@ -23,10 +28,10 @@ public abstract class BEJATSeq {
         if (density < 1) throw new InvalidParameterException("Invalid size: "+getElementSize());
 
         this.mask = (1 << bits) - 1;
-        //for (int i = 1; i < bits; i++) mask = (mask << 1 + 1); //TODO: Check this
     }
 
-    protected BEJATSeq(String[] sequence) {
+    protected BEJATSeq(String header, String[] sequence) {
+        this.header = header;
         this.sequence = clean(this, sequence);
         this.length = this.sequence.length();
         this.data = convert(this.sequence);
@@ -39,23 +44,41 @@ public abstract class BEJATSeq {
     }
 
     //  Getters
+    public String getHeader() {
+        return header;
+    }
     public String getSequence() {
         return sequence;
     }
     public long[] getData() {
         return data;
     }
-    public int getLength() {
-        return length;
+    public byte getBits() {
+        return bits;
     }
     public byte getDensity() {
         return density;
     }
-    public byte getBits() {
-        return bits;
-    }
     public long getMask() {
         return mask;
+    }
+    @Override
+    public int length() {
+        return length;
+    }
+    @Override
+    public char charAt(int index) {
+        return (validPosition(index)) ? sequence.charAt(index) : INVALID;
+    }
+
+    //  Subclass methods
+    protected char charAtFast(int index) {
+        return sequence.charAt(index);
+    }
+
+    //  Helper methods
+    protected boolean validPosition(int i) {
+        return i >= 0 && i < length();
     }
 
     //  Abstract methods
@@ -105,8 +128,6 @@ public abstract class BEJATSeq {
 
         return output;
     }
-
-
     protected static String clean(BEJATSeq type, String... sequence) {
         if (sequence == null || sequence.length < 1 || sequence[0].length() < 1) {
             throw new InvalidParameterException("No sequence");
@@ -126,6 +147,20 @@ public abstract class BEJATSeq {
         return sb.toString();
     }
 
+    //  CharSequence methods
+    @Override
+    public CharSequence subSequence(int start, int end) {
+        return sequence.subSequence(start, end); // TODO: Make same class?
+    }
+    @Override
+    public IntStream chars() {
+        return sequence.chars();
+    }
+    @Override
+    public IntStream codePoints() {
+        return sequence.codePoints();
+    }
+
     /*public static long[] convert(sequence.BEJATSeq type, String... input) {
         byte bits = type.getElementSize();
         byte density = type.getDensity();
@@ -133,7 +168,7 @@ public abstract class BEJATSeq {
 
         //byte mask = 1;
 
-        //for (int i = 1; i < bits; i++) mask = (byte) (mask << 1 + 1); //TODO: Check this
+        //for (int i = 1; i < bits; i++) mask = (byte) (mask << 1 + 1);
 
         int n = 0;
 

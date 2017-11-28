@@ -5,12 +5,12 @@ public abstract class BEJATNSeq extends BEJATSeq {
     public static final byte ELEMENT_SIZE = 2;
     private static final byte[] TRANSLATION = {0, 1, 2, 3};
 
-    protected BEJATNSeq(String sequence) {
-        super(sequence);
+    protected BEJATNSeq(String header, String sequence) {
+        super(header, sequence);
     }
 
-    protected BEJATNSeq(String[] sequence) {
-        super(sequence);
+    protected BEJATNSeq(String header, String[] sequence) {
+        super(header, sequence);
     }
 
     public byte[] getTranslations() {
@@ -21,6 +21,10 @@ public abstract class BEJATNSeq extends BEJATSeq {
     }
 
     public byte charToBinary(char c) {
+        return interpret(c);
+    }
+
+    public static byte interpret(char c) {
         switch (c) {
             case 'G':
             case 'g':
