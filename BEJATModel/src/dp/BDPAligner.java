@@ -45,6 +45,7 @@ public class BDPAligner implements Runnable {
     protected final boolean doGlobal;
     protected final boolean doLocal;
     protected volatile boolean complete;
+    protected volatile boolean alligned;
 
     public BDPAligner(BSeq first, BSeq second, BScore scorer, int flag) {
         this(first, second, scorer, (flag & GLOBAL_FLAG) == GLOBAL_FLAG, (flag & LOCAL_FLAG) == LOCAL_FLAG);
@@ -76,11 +77,14 @@ public class BDPAligner implements Runnable {
         this.W = first.length() + 1;
         this.H = second.length() + 1;
         this.A = H*W;
-        this.total = A;
         this.AdjW = adjWidthFromSize(F);
         this.AdjH = S;
 
         this.doGlobal = doGlobal;
+        this.doLocal = doLocal;
+
+        this.total = ((this.doGlobal || this.doLocal) ? A : 0) + 1;
+
         if (doGlobal) {
             this.scoresG = new int[H][W];
             this.adjacencyG = new long[AdjH][AdjW];
@@ -89,15 +93,11 @@ public class BDPAligner implements Runnable {
             //  Needleman–Wunsch Algorithm
             Arrays.fill(this.scoresG, 0);
             scorer.initializeGlobal(this.scoresG);
-
-            // TODO: Here
-
         } else {
             this.scoresG = null;
             this.adjacencyG = null;
         }
 
-        this.doLocal = doLocal;
         if (doLocal) {
             this.scoresL = new int[H][W];
             this.adjacencyL = new long[AdjH][AdjW];
@@ -110,17 +110,43 @@ public class BDPAligner implements Runnable {
             this.adjacencyL = null;
         }
 
+        this.done = ((this.doGlobal) ? F+S+1 : 0);
+
         this.complete = !doRun();
+        this.alligned = this.complete;
+
+        if (this.alligned) this.done++;
     }
 
     @Override
     public void run() {
-        if (doRun() && !complete) {
+        boolean skip = false;
+        while (!skip && doRun() && !complete && !alligned) {
+            if (!complete) {
+                // Temp variables
+                int score, scoreG1, scoreD, s;
 
+                //  scores[j][i] is H x W = A in size
+                //  0 row/column is done in initialization
+                for (int j = 1; j < H; j++) { // Second sequence
 
-        } else {
-            return;
+                    for (int i = 1; i < W; i++) { // First sequence
+                        score
+                        if (doGlobal) this.scoresG;
+                    }
+                    this.done += F;
+                }
+                this.complete = true;
+            } else if (!alligned) {
+
+                //  TODO:
+
+                this.done++;
+                this.alligned = true;
+            } else {
+            }
         }
+        return;
     }
 
     //  Synchronized?
