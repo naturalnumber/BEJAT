@@ -1,17 +1,17 @@
 package sequence;
 
-public class BDNASeq extends BNSeq {
+public class DNASeq extends NSeq {
 
     public static final char[]   LEXICON_CHARS   = {'G', 'C', 'A', 'T'};
     public static final String[] LEXICON_STRINGS = {"G", "C", "A", "T"};
     public static final String   LEXICON_STRING  = "GCAT";
     public static final String   TYPE  = "DNA";
 
-    public BDNASeq(String header, String sequence) {
+    public DNASeq(String header, String sequence) {
         super(header, sequence);
     }
 
-    public BDNASeq(String header, String[] sequence) {
+    public DNASeq(String header, String[] sequence) {
         super(header, sequence);
     }
 

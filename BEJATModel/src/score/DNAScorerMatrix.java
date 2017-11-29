@@ -1,20 +1,19 @@
 package score;
 
-import sequence.BDNASeq;
-import sequence.BNSeq;
+import sequence.DNASeq;
 
-public class BDNAScoreMatrix extends BDNAScore {
+public class DNAScorerMatrix extends DNAScorer {
     private final int[][] scores;
     private final int gapOpen;
     private final int gapExtend;
 
-    public BDNAScoreMatrix(int[][] scores, int gap) {
+    public DNAScorerMatrix(int[][] scores, int gap) {
         this(scores, gap, gap);
     }
 
-    public BDNAScoreMatrix(int[][] scores, int gapOpen, int gapExtend) {
+    public DNAScorerMatrix(int[][] scores, int gapOpen, int gapExtend) {
         if ( scores == null || scores.length != N || scores[0].length != N ) {
-            throw new IllegalArgumentException("Bad scoresG: "+scores);
+            throw new IllegalArgumentException("Bad gScores: "+scores);
         }
         this.scores = scores;
         this.gapOpen = gapOpen;
@@ -23,7 +22,7 @@ public class BDNAScoreMatrix extends BDNAScore {
 
     @Override
     public int s(char a, char b) {
-        return scores[BDNASeq.interpret(a)][BDNASeq.interpret(b)];
+        return scores[DNASeq.interpret(a)][DNASeq.interpret(b)];
     }
 
     @Override
@@ -34,6 +33,16 @@ public class BDNAScoreMatrix extends BDNAScore {
     @Override
     public int w(int l) {
         return (l == 0) ? gapOpen : gapExtend;
+    }
+
+    @Override
+    public boolean isSimpleGap() {
+        return gapOpen == gapExtend;
+    }
+
+    @Override
+    public boolean isSimpleExtension() {
+        return true;
     }
 
     //  Supposed to override

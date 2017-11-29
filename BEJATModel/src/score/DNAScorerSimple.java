@@ -1,16 +1,16 @@
 package score;
 
-public class BDNAScoreSimple extends BDNAScore {
+public class DNAScorerSimple extends DNAScorer {
     private final int equal;
     private final int unequal;
     private final int gapOpen;
     private final int gapExtend;
 
-    public BDNAScoreSimple(int equal, int unequal, int gap) {
+    public DNAScorerSimple(int equal, int unequal, int gap) {
         this(equal, unequal, gap, gap);
     }
 
-    public BDNAScoreSimple(int equal, int unequal, int gapOpen, int gapExtend) {
+    public DNAScorerSimple(int equal, int unequal, int gapOpen, int gapExtend) {
         this.equal = equal;
         this.unequal = unequal;
         this.gapOpen = gapOpen;
@@ -30,6 +30,16 @@ public class BDNAScoreSimple extends BDNAScore {
     @Override
     public int w(int l) {
         return (l == 0) ? gapOpen : gapExtend;
+    }
+
+    @Override
+    public boolean isSimpleGap() {
+        return gapOpen == gapExtend;
+    }
+
+    @Override
+    public boolean isSimpleExtension() {
+        return true;
     }
 
     //  Supposed to override
