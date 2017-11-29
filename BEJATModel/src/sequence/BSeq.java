@@ -2,9 +2,10 @@ package sequence;
 
 import java.io.Serializable;
 import java.security.InvalidParameterException;
+import java.util.Arrays;
 import java.util.stream.IntStream;
 
-public abstract class BEJATSeq implements CharSequence, Serializable, Cloneable {
+public abstract class BSeq implements CharSequence, Serializable, Cloneable {
 
     public static final byte WORD_SIZE = 64;
     public static final char INVALID = '?';
@@ -17,8 +18,10 @@ public abstract class BEJATSeq implements CharSequence, Serializable, Cloneable 
     protected final byte density;
     protected final long mask;
 
-    protected BEJATSeq(String header, String sequence) {
-        this.header = header;
+    protected BSeq(String header, String sequence) {
+        if (sequence != null) throw new IllegalArgumentException("Null sequence");
+
+        this.header = (header != null) ? header : "";
         this.sequence = clean(this, sequence);
         this.length = this.sequence.length();
         this.data = convert(this.sequence);
@@ -30,8 +33,10 @@ public abstract class BEJATSeq implements CharSequence, Serializable, Cloneable 
         this.mask = (1 << bits) - 1;
     }
 
-    protected BEJATSeq(String header, String[] sequence) {
-        this.header = header;
+    protected BSeq(String header, String[] sequence) {
+        if (sequence != null) throw new IllegalArgumentException("Null sequence");
+
+        this.header = (header != null) ? header : "";
         this.sequence = clean(this, sequence);
         this.length = this.sequence.length();
         this.data = convert(this.sequence);
@@ -82,13 +87,24 @@ public abstract class BEJATSeq implements CharSequence, Serializable, Cloneable 
     }
 
     //  Abstract methods
+    public abstract String getType();
     public abstract char[] getLexicon();
     public abstract String[] getLexiconAsStrings();
     public abstract byte[] getTranslations();
     public abstract byte getElementSize();
     public abstract byte charToBinary(char c);
 
+    public boolean sameType(BSeq bSeq) {
+        if (getBits() != bSeq.getBits()) return false;
+        if (getDensity() != bSeq.getDensity()) return false;
+        if (getMask() != bSeq.getMask()) return false;
+        return getLexiconAsString().equals(bSeq.getLexiconAsString());
+    }
+
     //  Should override
+    public long getLexiconLength() {
+        return getLexicon().length;
+    }
     public String getLexiconAsString() {
         char[] lexicon = getLexicon();
         StringBuilder lexiconString = new StringBuilder(lexicon.length);
@@ -100,14 +116,10 @@ public abstract class BEJATSeq implements CharSequence, Serializable, Cloneable 
     }
 
     //  Helpers
-    protected static long[] convert(BEJATSeq type, String input) {
+    protected static long[] convert(BSeq type, String input) {
         byte bits = type.getElementSize();
         byte density = type.getDensity();
         if (density < 1) throw new InvalidParameterException("Invalid size: "+bits);
-
-        //byte mask = 1;
-
-        //for (int i = 1; i < bits; i++) mask = (byte) (mask << 1 + 1);
 
         int n = input.length();
 
@@ -128,7 +140,8 @@ public abstract class BEJATSeq implements CharSequence, Serializable, Cloneable 
 
         return output;
     }
-    protected static String clean(BEJATSeq type, String... sequence) {
+
+    protected static String clean(BSeq type, String... sequence) {
         if (sequence == null || sequence.length < 1 || sequence[0].length() < 1) {
             throw new InvalidParameterException("No sequence");
         }
@@ -161,7 +174,39 @@ public abstract class BEJATSeq implements CharSequence, Serializable, Cloneable 
         return sequence.codePoints();
     }
 
-    /*public static long[] convert(sequence.BEJATSeq type, String... input) {
+    //  Object methods
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BSeq)) return false;
+
+        BSeq bSeq = (BSeq) o;
+
+        if (length != bSeq.length) return false;
+        if (getBits() != bSeq.getBits()) return false;
+        if (getDensity() != bSeq.getDensity()) return false;
+        if (getMask() != bSeq.getMask()) return false;
+        if (!getHeader().equals(bSeq.getHeader())) return false;
+        return getSequence().equals(bSeq.getSequence());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getHeader().hashCode();
+        result = 31 * result + getSequence().hashCode();
+        result = 31 * result + Arrays.hashCode(getData());
+        result = 31 * result + length;
+        result = 31 * result + (int) getBits();
+        result = 31 * result + (int) getDensity();
+        result = 31 * result + (int) (getMask() ^ (getMask() >>> 32));
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return getType() + '[' + header + ']' + sequence;
+    }
+/*public static long[] convert(sequence.BSeq type, String... input) {
         byte bits = type.getElementSize();
         byte density = type.getDensity();
         if (density < 1) throw new InvalidParameterException("Invalid size: "+bits);

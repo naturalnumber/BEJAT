@@ -1,17 +1,23 @@
 package sequence;
 
-public class BEJATDNASeq extends BEJATNSeq {
+public class BDNASeq extends BNSeq {
 
-    private static final char[] LEXICON = {'G', 'C', 'A', 'T'};
-    private static final String[] LEXICON_SA = {"G", "C", "A", "T"};
-    private static final String LEXICON_S = "GCAT";
+    public static final char[]   LEXICON_CHARS   = {'G', 'C', 'A', 'T'};
+    public static final String[] LEXICON_STRINGS = {"G", "C", "A", "T"};
+    public static final String   LEXICON_STRING  = "GCAT";
+    public static final String   TYPE  = "DNA";
 
-    public BEJATDNASeq(String header, String sequence) {
+    public BDNASeq(String header, String sequence) {
         super(header, sequence);
     }
 
-    public BEJATDNASeq(String header, String[] sequence) {
+    public BDNASeq(String header, String[] sequence) {
         super(header, sequence);
+    }
+
+    @Override
+    public String getType() {
+        return TYPE;
     }
 
     @Override
@@ -39,13 +45,13 @@ public class BEJATDNASeq extends BEJATNSeq {
     }
 
     public char[] getLexicon() {
-        return LEXICON;
+        return LEXICON_CHARS;
     }
     public String[] getLexiconAsStrings() {
-        return LEXICON_SA;
+        return LEXICON_STRINGS;
     }
     public String getLexiconAsString() {
-        return LEXICON_S;
+        return LEXICON_STRING;
     }
 
 }

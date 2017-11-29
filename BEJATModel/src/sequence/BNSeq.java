@@ -1,15 +1,16 @@
 package sequence;
 
-public abstract class BEJATNSeq extends BEJATSeq {
+public abstract class BNSeq extends BSeq {
 
     public static final byte ELEMENT_SIZE = 2;
+    public static final byte LEXICON_LENGTH = 4;
     private static final byte[] TRANSLATION = {0, 1, 2, 3};
 
-    protected BEJATNSeq(String header, String sequence) {
+    protected BNSeq(String header, String sequence) {
         super(header, sequence);
     }
 
-    protected BEJATNSeq(String header, String[] sequence) {
+    protected BNSeq(String header, String[] sequence) {
         super(header, sequence);
     }
 
@@ -22,6 +23,10 @@ public abstract class BEJATNSeq extends BEJATSeq {
 
     public byte charToBinary(char c) {
         return interpret(c);
+    }
+
+    public long getLexiconLength() {
+        return LEXICON_LENGTH;
     }
 
     public static byte interpret(char c) {
