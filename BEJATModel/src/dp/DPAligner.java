@@ -17,7 +17,7 @@ import sequence.Seq;
  */
 
 public class DPAligner implements Runnable {
-    private final static int WORD_SIZE = 62;
+    private final static int WORD_SIZE = 64;
     private final static int N_PER = 21;
 
     public final static long GLOBAL_FLAG = 1;
