@@ -21,7 +21,7 @@ public abstract class NSeq extends Seq {
         return ELEMENT_SIZE;
     }
 
-    public byte charToBinary(char c) {
+    public int charToBinary(char c) {
         return interpret(c);
     }
 
@@ -29,7 +29,7 @@ public abstract class NSeq extends Seq {
         return LEXICON_LENGTH;
     }
 
-    public static byte interpret(char c) {
+    public static int interpret(char c) {
         switch (c) {
             case 'G':
             case 'g':
@@ -50,7 +50,7 @@ public abstract class NSeq extends Seq {
         }
     }
 
-    public long[] convert(String input) {
+    /*public long[] convert(String input) {
         byte bits = getBits();
         byte density = getDensity();
 
@@ -72,7 +72,7 @@ public abstract class NSeq extends Seq {
         }
 
         return output;
-    }
+    }//*/
 
     /*public long[] convert(String... input) {
         byte bits = ELEMENT_SIZE;

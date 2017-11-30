@@ -13,7 +13,7 @@ public class DNAScorerMatrix extends DNAScorer {
 
     public DNAScorerMatrix(int[][] scores, int gapOpen, int gapExtend) {
         if ( scores == null || scores.length != N || scores[0].length != N ) {
-            throw new IllegalArgumentException("Bad gScores: "+scores);
+            throw new IllegalArgumentException("Bad globalScores: "+scores);
         }
         this.scores = scores;
         this.gapOpen = gapOpen;
@@ -26,7 +26,7 @@ public class DNAScorerMatrix extends DNAScorer {
     }
 
     @Override
-    public int s(byte a, byte b) {
+    public int s(int a, int b) {
         return scores[a][b];
     }
 

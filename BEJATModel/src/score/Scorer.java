@@ -4,7 +4,7 @@ import sequence.Seq;
 
 public abstract class Scorer {
     public abstract int s(char a, char b);
-    public abstract int s(byte a, byte b);
+    public abstract int s(int a, int b);
     public abstract int w(int l);
     public abstract String getType();
     public abstract boolean sameType(Seq seq);

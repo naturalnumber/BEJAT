@@ -12,11 +12,11 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
 
     protected final String header;
     protected final String sequence;
-    protected final long[] data;
     protected final int length;
-    protected final byte bits;
-    protected final byte density;
-    protected final long mask;
+    //protected final byte bits;
+    //protected final byte density;
+    //protected final long mask;
+    //protected final long[] data;
 
     protected Seq(String header, String sequence) {
         if (sequence != null) throw new IllegalArgumentException("Null sequence");
@@ -24,13 +24,13 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
         this.header = (header != null) ? header : "";
         this.sequence = clean(this, sequence);
         this.length = this.sequence.length();
-        this.data = convert(this.sequence);
+        //this.data = convert(this.sequence);
 
-        this.bits = getElementSize();
-        this.density = (byte) (WORD_SIZE / bits);
-        if (density < 1) throw new InvalidParameterException("Invalid size: "+getElementSize());
+        //this.bits = getElementSize();
+        //this.density = (byte) (WORD_SIZE / bits);
+        //if (density < 1) throw new InvalidParameterException("Invalid size: "+getElementSize());
 
-        this.mask = (1 << bits) - 1;
+        //this.mask = (1 << bits) - 1;
     }
 
     protected Seq(String header, String[] sequence) {
@@ -39,13 +39,13 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
         this.header = (header != null) ? header : "";
         this.sequence = clean(this, sequence);
         this.length = this.sequence.length();
-        this.data = convert(this.sequence);
+        //this.data = convert(this.sequence);
 
-        this.bits = getElementSize();
-        this.density = (byte) (WORD_SIZE / bits);
-        if (density < 1) throw new InvalidParameterException("Invalid size: "+getElementSize());
+        //this.bits = getElementSize();
+        //this.density = (byte) (WORD_SIZE / bits);
+        //if (density < 1) throw new InvalidParameterException("Invalid size: "+getElementSize());
 
-        this.mask = (1 << bits) - 1;
+        //this.mask = (1 << bits) - 1;
     }
 
     //  Getters
@@ -55,18 +55,6 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
     public String getSequence() {
         return sequence;
     }
-    public long[] getData() {
-        return data;
-    }
-    public byte getBits() {
-        return bits;
-    }
-    public byte getDensity() {
-        return density;
-    }
-    public long getMask() {
-        return mask;
-    }
     @Override
     public int length() {
         return length;
@@ -74,6 +62,19 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
     @Override
     public char charAt(int index) {
         return (validPosition(index)) ? sequence.charAt(index) : INVALID;
+    }
+    public int valueAt(int index) {
+        return (validPosition(index)) ? charToBinary(sequence.charAt(index)) : -1;
+    }
+    public int[] values() {
+        int[] values = new int[length];
+        for (int i = 0; i < length; i++) values[i] = charToBinary(sequence.charAt(i));
+        return values;
+    }
+    public int[] values(int offset) {
+        int[] values = new int[length+offset];
+        for (int i = 0; i < length; i++) values[i+offset] = charToBinary(sequence.charAt(i));
+        return values;
     }
 
     //  Subclass methods
@@ -92,12 +93,12 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
     public abstract String[] getLexiconAsStrings();
     public abstract byte[] getTranslations();
     public abstract byte getElementSize();
-    public abstract byte charToBinary(char c);
+    public abstract int charToBinary(char c);
 
     public boolean sameType(Seq seq) {
-        if (getBits() != seq.getBits()) return false;
-        if (getDensity() != seq.getDensity()) return false;
-        if (getMask() != seq.getMask()) return false;
+        //if (getBits() != seq.getBits()) return false;
+        //if (getDensity() != seq.getDensity()) return false;
+        //if (getMask() != seq.getMask()) return false;
         return getLexiconAsString().equals(seq.getLexiconAsString());
     }
 
@@ -111,36 +112,8 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
         for (char c : lexicon) lexiconString.append(Character.toUpperCase(c));
         return lexiconString.toString();
     }
-    public long[] convert(String input) {
-        return convert(this, input);
-    }
 
     //  Helpers
-    protected static long[] convert(Seq type, String input) {
-        byte bits = type.getElementSize();
-        byte density = type.getDensity();
-        if (density < 1) throw new InvalidParameterException("Invalid size: "+bits);
-
-        int n = input.length();
-
-        int l = n/density + ((n%density > 0) ? 1 : 0);
-
-        long[] output = new long[l];
-
-        int sj = 0;
-        long temp;
-
-        for (int i = 0; i < l; i++) {
-            temp = 0;
-            for (int j = 0; j < density; j++) {
-                temp = (temp << bits) | (type.charToBinary(input.charAt(sj++))); // mask &
-            }
-            output[i] = temp;
-        }
-
-        return output;
-    }
-
     protected static String clean(Seq type, String... sequence) {
         if (sequence == null || sequence.length < 1 || sequence[0].length() < 1) {
             throw new InvalidParameterException("No sequence");
@@ -183,9 +156,9 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
         Seq seq = (Seq) o;
 
         if (length != seq.length) return false;
-        if (getBits() != seq.getBits()) return false;
-        if (getDensity() != seq.getDensity()) return false;
-        if (getMask() != seq.getMask()) return false;
+        //if (getBits() != seq.getBits()) return false;
+        //if (getDensity() != seq.getDensity()) return false;
+        //if (getMask() != seq.getMask()) return false;
         if (!getHeader().equals(seq.getHeader())) return false;
         return getSequence().equals(seq.getSequence());
     }
@@ -194,11 +167,11 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
     public int hashCode() {
         int result = getHeader().hashCode();
         result = 31 * result + getSequence().hashCode();
-        result = 31 * result + Arrays.hashCode(getData());
+        //result = 31 * result + Arrays.hashCode(getData());
         result = 31 * result + length;
-        result = 31 * result + (int) getBits();
-        result = 31 * result + (int) getDensity();
-        result = 31 * result + (int) (getMask() ^ (getMask() >>> 32));
+        //result = 31 * result + (int) getBits();
+        //result = 31 * result + (int) getDensity();
+        //result = 31 * result + (int) (getMask() ^ (getMask() >>> 32));
         return result;
     }
 
@@ -206,6 +179,52 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
     public String toString() {
         return getType() + '[' + header + ']' + sequence;
     }
+
+
+    /*public long[] getData() {
+        return data;
+    }
+    public byte getBits() {
+        return bits;
+    }
+    public byte getDensity() {
+        return density;
+    }
+    public long getMask() {
+        return mask;
+    }//*/
+
+    /*public long[] convert(String input) {
+        return convert(this, input);
+    }//*/
+
+    /*
+    protected static long[] convert(Seq type, String input) {
+        byte bits = type.getElementSize();
+        byte density = type.getDensity();
+        if (density < 1) throw new InvalidParameterException("Invalid size: "+bits);
+
+        int n = input.length();
+
+        int l = n/density + ((n%density > 0) ? 1 : 0);
+
+        long[] output = new long[l];
+
+        int sj = 0;
+        long temp;
+
+        for (int i = 0; i < l; i++) {
+            temp = 0;
+            for (int j = 0; j < density; j++) {
+                temp = (temp << bits) | (type.charToBinary(input.charAt(sj++))); // mask &
+            }
+            output[i] = temp;
+        }
+
+        return output;
+    }//*/
+
+
 /*public static long[] convert(sequence.Seq type, String... input) {
         byte bits = type.getElementSize();
         byte density = type.getDensity();

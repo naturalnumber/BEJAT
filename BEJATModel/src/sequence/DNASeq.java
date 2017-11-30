@@ -21,11 +21,11 @@ public class DNASeq extends NSeq {
     }
 
     @Override
-    public byte charToBinary(char c) {
+    public int charToBinary(char c) {
         return interpret(c);
     }
 
-    public static byte interpret(char c) {
+    public static int interpret(char c) {
         switch (c) {
             case 'G':
             case 'g':

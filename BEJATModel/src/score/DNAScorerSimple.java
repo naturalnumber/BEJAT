@@ -23,7 +23,7 @@ public class DNAScorerSimple extends DNAScorer {
     }
 
     @Override
-    public int s(byte a, byte b) {
+    public int s(int a, int b) {
         return (a == b) ? equal : unequal;
     }
 
