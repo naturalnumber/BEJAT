@@ -1,5 +1,8 @@
 package dp;
 
+import java.util.ArrayList;
+
+import alignment.Alignment;
 import score.Scorer;
 import sequence.Seq;
 
@@ -39,6 +42,9 @@ public class DPAligner implements Runnable {
     protected final int[][]  localScores;
     protected final long[][] gAdjacency;
     protected final long[][] lAdjacency;
+
+    protected final ArrayList<Alignment> gAlignments;
+    protected final ArrayList<Alignment> lAlignments;
 
     protected final    int    F; // First
     protected final    int    S; // Second
@@ -106,9 +112,12 @@ public class DPAligner implements Runnable {
             //  Needleman–Wunsch Algorithm
             //for (int[] ints : this.globalScores) Arrays.fill(ints, 0); // Should be unnecessary
             scorer.initializeGlobal(this.globalScores);
+
+            this.gAlignments = new ArrayList<>();
         } else {
             this.globalScores = null;
             this.gAdjacency = null;
+            this.gAlignments = null;
         }
 
         if (doLocal) {
@@ -118,9 +127,12 @@ public class DPAligner implements Runnable {
             //  Initialize
             //  Smith–Waterman Algorithm
             //for (int[] ints : this.localScores) Arrays.fill(ints, 0); // Should be unnecessary
+
+            this.lAlignments = new ArrayList<>();
         } else {
             this.localScores = null;
             this.lAdjacency = null;
+            this.lAlignments = null;
         }
 
         this.done = ((this.doGlobal) ? F + S + 1 : 0);
@@ -150,12 +162,11 @@ public class DPAligner implements Runnable {
                 }
                 this.complete = true;
             } else if (!alligned) {
-                if (doGlobal && doLocal) {
-                    errored = !alignAllSimple();
-                } else if (doGlobal) {
-                    //errored = !alignGlobalSimple();
-                } else if (doLocal) {
-                    //errored = !alignLocalSimple();
+                if (doGlobal) {
+                    errored = !alignGlobal();
+                }
+                if (doLocal) {
+                    errored = !alignLocal();
                 }
                 this.done++;
                 this.alligned = true;
@@ -165,6 +176,10 @@ public class DPAligner implements Runnable {
     }
 
     public boolean doAllSimple() {
+        if (scorer == null || first == null || second == null) return false;
+        if (this.globalScores == null || gAdjacency == null) return false;
+        if (this.localScores == null || lAdjacency == null) return false;
+
         //  Constants
         int w = scorer.w(0);
 
@@ -252,6 +267,9 @@ public class DPAligner implements Runnable {
     }
 
     public boolean doGlobalSimple() {
+        if (scorer == null || first == null || second == null) return false;
+        if (this.globalScores == null || gAdjacency == null) return false;
+
         //  Constants
         int w = scorer.w(0);
 
@@ -313,6 +331,9 @@ public class DPAligner implements Runnable {
     }
 
     public boolean doLocalSimple() {
+        if (scorer == null || first == null || second == null) return false;
+        if (this.localScores == null || lAdjacency == null) return false;
+
         //  Constants
         int w = scorer.w(0);
 
@@ -373,7 +394,11 @@ public class DPAligner implements Runnable {
         return true;
     }
 
-    private boolean alignAllSimple() {
+    private boolean alignGlobal() {
+
+    }
+
+    private boolean alignLocal() {
 
     }
 

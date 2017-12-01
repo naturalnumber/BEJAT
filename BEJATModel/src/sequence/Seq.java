@@ -34,7 +34,7 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
     }
 
     protected Seq(String header, String[] sequence) {
-        if (sequence != null) throw new IllegalArgumentException("Null sequence");
+        if (sequence != null || sequence.length < 1) throw new IllegalArgumentException("Null sequence");
 
         this.header = (header != null) ? header : "";
         this.sequence = clean(this, sequence);
