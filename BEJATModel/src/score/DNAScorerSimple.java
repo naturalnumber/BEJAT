@@ -1,30 +1,30 @@
 package score;
 
 public class DNAScorerSimple extends DNAScorer {
-    private final int equal;
-    private final int unequal;
+    private final int match;
+    private final int mismatch;
     private final int gapOpen;
     private final int gapExtend;
 
-    public DNAScorerSimple(int equal, int unequal, int gap) {
-        this(equal, unequal, gap, gap);
+    public DNAScorerSimple(int match, int mismatch, int gap) {
+        this(match, mismatch, gap, gap);
     }
 
-    public DNAScorerSimple(int equal, int unequal, int gapOpen, int gapExtend) {
-        this.equal = equal;
-        this.unequal = unequal;
+    public DNAScorerSimple(int match, int mismatch, int gapOpen, int gapExtend) {
+        this.match = match;
+        this.mismatch = mismatch;
         this.gapOpen = gapOpen;
         this.gapExtend = gapExtend;
     }
 
     @Override
     public int s(char a, char b) {
-        return (a == b) ? equal : unequal;
+        return (a == b) ? match : mismatch;
     }
 
     @Override
     public int s(int a, int b) {
-        return (a == b) ? equal : unequal;
+        return (a == b) ? match : mismatch;
     }
 
     @Override

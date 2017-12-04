@@ -18,22 +18,24 @@ import sequence.Seq;
  */
 
 public class DPAligner implements Runnable {
+    private static final boolean DEBUG = true;
+
     private final static int WORD_SIZE = 64;
     private final static int N_PER     = 21;
 
     public final static long GLOBAL_FLAG = 1;
     public final static long LOCAL_FLAG  = 2;
 
-    protected final static byte GPN_F = 1; // North
-    protected final static byte MMM_F = 2; // Diagonal
-    protected final static byte GPW_F = 4; // West
+    public final static byte GPN_F = 1; // North
+    public final static byte MMM_F = 2; // Diagonal
+    public final static byte GPW_F = 4; // West
 
-    protected final static byte MSK = 7; // All
+    public final static byte MSK = 7; // All
 
-    protected final static long[] MASKS = getMasks();
-    protected final static long[] GPN   = getFlags(GPN_F);
-    protected final static long[] MMM   = getFlags(MMM_F);
-    protected final static long[] GPW   = getFlags(GPW_F);
+    public final static long[] MASKS = getMasks();
+    public final static long[] GPN   = getFlags(GPN_F);
+    public final static long[] MMM   = getFlags(MMM_F);
+    public final static long[] GPW   = getFlags(GPW_F);
 
     protected final Seq      first;
     protected final Seq      second;
@@ -55,6 +57,9 @@ public class DPAligner implements Runnable {
     protected volatile int    done;
     protected final    int    AdjW; // First
     protected final    int    AdjH; // Second
+
+    protected int gMax;
+    protected int lMax;
 
     protected final    boolean doGlobal;
     protected final    boolean doLocal;
@@ -81,7 +86,7 @@ public class DPAligner implements Runnable {
             throw new IllegalArgumentException("Type mismatch: " + first.getType() + " and " +
                                                second.getType());
         }
-        if (scorer.sameType(first)) {
+        if (!scorer.sameType(first)) {
             throw new IllegalArgumentException("Scorer type mismatch: " + first.getType() +
                                                " and " +
                                                scorer.getType());
@@ -96,8 +101,8 @@ public class DPAligner implements Runnable {
         this.W = first.length() + 1;
         this.H = second.length() + 1;
         this.A = H * W;
-        this.AdjW = adjWidthFromSize(F);
-        this.AdjH = S;
+        this.AdjW = adjWidthFromSize(W);
+        this.AdjH = H;
 
         this.doGlobal = doGlobal;
         this.doLocal = doLocal;
@@ -146,27 +151,39 @@ public class DPAligner implements Runnable {
 
     @Override
     public void run() {
-        while (!errored && doRun() && !complete && !alligned) {
+        while (!errored && doRun() && (!complete || !alligned)) {
+            if (DEBUG) System.out.println("Running...");
             if (!complete) {
                 if (scorer.isSimpleGap()) {
                     if (doGlobal && doLocal) {
+                        if (DEBUG) System.out.println("Simply scoring all...");
                         errored = !doAllSimple();
+                        if (errored) System.err.println("Failed Scoring");
                     } else if (doGlobal) {
+                        if (DEBUG) System.out.println("Simply scoring global...");
                         errored = !doGlobalSimple();
+                        if (errored) System.err.println("Failed Global Scoring");
                     } else if (doLocal) {
+                        if (DEBUG) System.out.println("Simply scoring local...");
                         errored = !doLocalSimple();
+                        if (errored) System.err.println("Failed Local Scoring");
                     }
                 } else {
+                    if (DEBUG) System.out.println("Bad scoring scheme...");
                     errored = true;
                     throw new IllegalArgumentException("Complex gaps are experimental!");
                 }
                 this.complete = true;
             } else if (!alligned) {
                 if (doGlobal) {
+                    if (DEBUG) System.out.println("Aligning globally...");
                     errored = !alignGlobal();
+                    if (errored) System.err.println("Failed Global Align");
                 }
                 if (doLocal) {
+                    if (DEBUG) System.out.println("Aligning locally...");
                     errored = !alignLocal();
+                    if (errored) System.err.println("Failed Local Align");
                 }
                 this.done++;
                 this.alligned = true;
@@ -175,7 +192,12 @@ public class DPAligner implements Runnable {
         return;
     }
 
-    public boolean doAllSimple() {
+    //  Synchronized?
+    public double getProgress() {
+        return this.done / this.total;
+    }
+
+    private boolean doAllSimple() {
         if (scorer == null || first == null || second == null) return false;
         if (this.globalScores == null || gAdjacency == null) return false;
         if (this.localScores == null || lAdjacency == null) return false;
@@ -266,7 +288,7 @@ public class DPAligner implements Runnable {
         return true;
     }
 
-    public boolean doGlobalSimple() {
+    private boolean doGlobalSimple() {
         if (scorer == null || first == null || second == null) return false;
         if (this.globalScores == null || gAdjacency == null) return false;
 
@@ -330,7 +352,7 @@ public class DPAligner implements Runnable {
         return true;
     }
 
-    public boolean doLocalSimple() {
+    private boolean doLocalSimple() {
         if (scorer == null || first == null || second == null) return false;
         if (this.localScores == null || lAdjacency == null) return false;
 
@@ -395,15 +417,199 @@ public class DPAligner implements Runnable {
     }
 
     private boolean alignGlobal() {
+        gMax = globalScores[S][F];
+        return gAlignFrom(F, S, new Alignment(globalScores[S][F], first, second, true, F, S), gAlignments);
+    }
 
+    private boolean gAlignFrom(int iStart, int jStart, Alignment a, ArrayList<Alignment> alignments) {
+        alignments.add(a);
+
+        Alignment copy;
+        int i = iStart, j = jStart; // first, second
+        boolean gp1, mmm, gp2, split, triple;
+
+        while (i > 0 || j > 0) {
+            gp1 = hasAdj(gAdjacency, j, i, GPN);
+            mmm = hasAdj(gAdjacency, j, i, MMM);
+            gp2 = hasAdj(gAdjacency, j, i, GPW);
+            split = gp1 && mmm || mmm && gp2 || gp1 && gp2; // gp1 && gp2 impossible?
+            triple = gp1 && mmm && gp2;
+
+            if (!split) { // basic
+                if (mmm) {
+                    a.append(first.charAt(i-1), second.charAt(j-1));
+                    i--;
+                    j--;
+                    continue;
+                }
+                if (gp1) {
+                    a.appendSecond(second.charAt(j-1));
+                    j--;
+                    continue;
+                }
+                //  Gap2
+                a.appendFirst(first.charAt(i-1));
+                i--;
+                continue;
+            } else if (!triple) { // double
+                copy = a.copy();
+                if (mmm) { // Should be always true
+                    if (gp1) {
+                        copy.appendSecond(second.charAt(j-1));
+                        if(!gAlignFrom(i, j-1, copy, alignments)) return false;
+                    } else { // Gap2
+                        copy.appendFirst(first.charAt(i-1));
+                        if(!gAlignFrom(i-1, j, copy, alignments)) return false;
+                    }
+
+                    a.append(first.charAt(i-1), second.charAt(j-1));
+                    i--;
+                    j--;
+                    continue;
+                }
+                // Gap1 & 2 // Impossible?
+                //  Gap2
+                copy.appendFirst(first.charAt(i-1));
+                if(!gAlignFrom(i-1, j, copy, alignments)) return false;
+
+                a.appendSecond(second.charAt(j-1));
+                j--;
+                continue;
+            } else { // triple; Impossible?
+                //  Gap1
+                copy = a.copy();
+                copy.appendSecond(second.charAt(j-1));
+                if(!gAlignFrom(i, j-1, copy, alignments)) return false;
+
+                //  Gap2
+                copy = a.copy();
+                copy.appendFirst(first.charAt(i-1));
+                if(!gAlignFrom(i-1, j, copy, alignments)) return false;
+
+                //  Match MisMatch
+                a.append(first.charAt(i-1), second.charAt(j-1));
+                i--;
+                j--;
+                continue;
+            }
+        }
+
+        a.fixStart(i, j);
+        return true;
     }
 
     private boolean alignLocal() {
+        boolean success = true;
+        int max = 0, score;
+        ArrayList<int[]> pairs = new ArrayList<>();
 
+        // find maximum
+        for (int j = H-1; j > 0; j--) for (int i = W-1; i > 0; i--) {
+            score = localScores[j][i];
+
+            if (score > max) {
+                max = score;
+                pairs.clear();
+                pairs.add(new int[] {i, j});
+            } else if (score == max) {
+                pairs.add(new int[] {i, j});
+            }
+        }
+
+        lMax = max;
+
+        Alignment seed;
+        for (int[] pair : pairs) {
+            seed = new Alignment(max, first, second, false, pair[0], pair[1]);
+            success &= lAlignFrom(pair[0], pair[1], seed, lAlignments);
+        }
+
+
+
+
+        return success;
     }
 
-    private static void addAdj(long[][] gAdjacency, int j, int i, long[] flags) {
-        gAdjacency[j][adjW(i)] |= flags[adjR(i)];
+    private boolean lAlignFrom(int iStart, int jStart, Alignment a, ArrayList<Alignment> alignments) {
+        alignments.add(a);
+
+        Alignment copy;
+        int i = iStart, j = jStart; // first, second
+        boolean gp1, mmm, gp2, split, triple;
+
+        while (i > 0 || j > 0) {
+            if (localScores[j][i] <= 0) {
+                a.fixStart(i, j);
+                return true;
+            }
+
+            gp1 = hasAdj(lAdjacency, j, i, GPN);
+            mmm = hasAdj(lAdjacency, j, i, MMM);
+            gp2 = hasAdj(lAdjacency, j, i, GPW);
+            split = gp1 && mmm || mmm && gp2 || gp1 && gp2; // gp1 && gp2 impossible?
+            triple = gp1 && mmm && gp2;
+
+            if (!split) { // basic
+                if (mmm) {
+                    a.append(first.charAt(i-1), second.charAt(j-1));
+                    i--;
+                    j--;
+                    continue;
+                }
+                if (gp1) {
+                    a.appendSecond(second.charAt(j-1));
+                    j--;
+                    continue;
+                }
+                //  Gap2
+                a.appendFirst(first.charAt(i-1));
+                i--;
+                continue;
+            } else if (!triple) { // double
+                copy = a.copy();
+                if (mmm) { // Should be always true
+                    if (gp1) {
+                        copy.appendSecond(second.charAt(j-1));
+                        if(!lAlignFrom(i, j-1, copy, alignments)) return false;
+                    } else { // Gap2
+                        copy.appendFirst(first.charAt(i-1));
+                        if(!lAlignFrom(i-1, j, copy, alignments)) return false;
+                    }
+
+                    a.append(first.charAt(i-1), second.charAt(j-1));
+                    i--;
+                    j--;
+                    continue;
+                }
+                // Gap1 & 2 // Impossible?
+                //  Gap2
+                copy.appendFirst(first.charAt(i-1));
+                if(!lAlignFrom(i-1, j, copy, alignments)) return false;
+
+                a.appendSecond(second.charAt(j-1));
+                j--;
+                continue;
+            } else { // triple; Impossible?
+                //  Gap1
+                copy = a.copy();
+                copy.appendSecond(second.charAt(j-1));
+                if(!lAlignFrom(i, j-1, copy, alignments)) return false;
+
+                //  Gap2
+                copy = a.copy();
+                copy.appendFirst(first.charAt(i-1));
+                if(!lAlignFrom(i-1, j, copy, alignments)) return false;
+
+                //  Match MisMatch
+                a.append(first.charAt(i-1), second.charAt(j-1));
+                i--;
+                j--;
+                continue;
+            }
+        }
+
+        a.fixStart(i, j);
+        return true;
     }
 
     private int[] initializeGapLength(int x) {
@@ -414,11 +620,6 @@ public class DPAligner implements Runnable {
         for (int i = 1; i < x; i++) gl[i] = i - 1;
 
         return gl;
-    }
-
-    //  Synchronized?
-    public double getProgress() {
-        return this.done / this.total;
     }
 
     //  Helper methods
@@ -445,8 +646,31 @@ public class DPAligner implements Runnable {
         return flags;
     }
 
+    private static void addAdj(long[][] gAdjacency, int j, int i, long[] flags) {
+        //System.err.println("i:"+i+" j:"+j+" w: "+adjW(i)+" r:"+adjR(i));
+        gAdjacency[j][adjW(i)] |= flags[adjR(i)];
+    }
+
+    private static byte getAdj(long[][] gAdjacency, int j, int i) {
+        return (byte) ((gAdjacency[j][adjW(i)] >>> (3 * i)) & MSK) ;
+    }
+
+    private static boolean hasAdj(long[][] gAdjacency, int j, int i, long[] flags) {
+        //System.err.println("i:"+i+" j:"+j+" w: "+adjW(i)+" r:"+adjR(i));
+        long flag = flags[adjR(i)];
+        return (gAdjacency[j][adjW(i)] & flag) == flag;
+    }
+
     private static int adjWidthFromSize(int size) {
         return size / N_PER + ((size % N_PER > 0) ? 1 : 0); //  N_PER = 21 = (64/3)
+    }
+
+    private static int adjW(int i) {
+        return (i) / N_PER; //  N_PER = 21 = (64/3)
+    }
+
+    private static int adjR(int i) {
+        return (i) % N_PER; //  N_PER = 21 = (64/3)
     }
 
     private static int min(int a, int b, int c) {
@@ -463,16 +687,56 @@ public class DPAligner implements Runnable {
         return (m1 >= m2) ? m1 : m2;
     }
 
-    private static int adjW(int i) {
-        return i / N_PER; //  N_PER = 21 = (64/3)
+    //  Getters
+
+    public int[][] getGlobalScores() {
+        return globalScores;
     }
 
-    private static int adjR(int i) {
-        return i % N_PER; //  N_PER = 21 = (64/3)
+    public int[][] getLocalScores() {
+        return localScores;
     }
+
+    public byte[][] getGlobalAdjacency() {
+        byte[][] adjacency = new byte[H][W];
+
+        for (int j = 0; j < H; j++) for (int i = 0; i < W; i++) {
+            adjacency[j][i] = getAdj(gAdjacency, i, j);
+        }
+
+        return adjacency;
+    }
+
+    public byte[][] getLocalAdjacency() {
+        byte[][] adjacency = new byte[H][W];
+
+        for (int j = 0; j < H; j++) for (int i = 0; i < W; i++) {
+            adjacency[j][i] = getAdj(lAdjacency, i, j);
+        }
+
+        return adjacency;
+    }
+
+    public ArrayList<Alignment> getGlobalAlignments() {
+        return gAlignments;
+    }
+
+    public ArrayList<Alignment> getLocalAlignments() {
+        return lAlignments;
+    }
+
+    public int getGlobalScore() {
+        if (!complete) return -1;
+        return gMax;
+    }
+
+    public int getLocalScore() {
+        if (!complete) return -1;
+        return lMax;
+    }
+
 
     //  Experimental
-
 
     /**
      * This is experimental. It likely works for gap schemes of decreasing weight, but should

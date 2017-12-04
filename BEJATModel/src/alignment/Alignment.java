@@ -3,17 +3,17 @@ package alignment;
 import sequence.Seq;
 
 public class Alignment {
-    public final static char GAP = ' ';
+    public final static char GAP = '-';
 
-    private       Node start, current;
-    private final Node end;
+    private       Node start, current, end;
+    //private final Node end;
     private final Seq  first, second;
     private final int endIndexFirst, endIndexSecond;
-    private int startIndexFirst, startIndexSecond;
+    private int startIndexFirst, startIndexSecond, num;
     private final int score;
     private final boolean isGlobal;
 
-    public Alignment(int score, Seq first, Seq second, boolean isGlobal, int endIndexFirst, int endIndexSecond, char endFirst, char endSecond) {
+    public Alignment(int score, Seq first, Seq second, boolean isGlobal, int endIndexFirst, int endIndexSecond) { // , char endFirst, char endSecond
         this.score = score;
         this.first = first;
         this.second = second;
@@ -21,7 +21,8 @@ public class Alignment {
         //  TODO: Validity check on index/isGlobal?
         this.endIndexFirst = endIndexFirst;
         this.endIndexSecond = endIndexSecond;
-        this.current = this.end = new Node(endFirst, endSecond);
+        this.num = 0;
+        this.current = this.end = null; //new Node(endFirst, endSecond);
         this.start = null;
     }
 
@@ -32,19 +33,27 @@ public class Alignment {
         this.isGlobal = toCopy.isGlobal;
         this.endIndexFirst = toCopy.endIndexFirst;
         this.endIndexSecond = toCopy.endIndexSecond;
-        this.end = new Node(toCopy.end);
-        if (toCopy.isFinished()) {
-            this.current = null;
-            this.start = this.end.copyPath(toCopy.end);
-        } else {
-            this.current = this.end.copyPath(toCopy.end);
-            this.start = null;
+        this.num = toCopy.num;
+        if (toCopy.end != null) {
+            this.end = new Node(toCopy.end);
+            if (toCopy.isFinished()) {
+                this.current = null;
+                this.start = this.end.copyPath(toCopy.end);
+            } else {
+                this.current = this.end.copyPath(toCopy.end);
+                this.start = null;
+            }
         }
     }
 
     public Alignment append(char first, char second) {
         if (isFinished()) return this;
-        this.current = new Node(first, second, this.current);
+        if (this.end == null) {
+            this.current = this.end = new Node(first, second);
+        } else {
+            this.current = new Node(first, second, this.current);
+        }
+        num++;
         return this;
     }
 
@@ -76,25 +85,19 @@ public class Alignment {
         return new Alignment(this);
     }
 
-    public Alignment fixStart(char first, char second, int startIndexFirst, int startIndexSecond) {
+    public Alignment fixStart(int startIndexFirst, int startIndexSecond) {
         if (isFinished()) return this;
         //  TODO: Validity check on index/isGlobal?
         this.startIndexFirst = startIndexFirst;
         this.startIndexSecond = startIndexSecond;
-        if (this.endIndexFirst == startIndexFirst && this.endIndexSecond == startIndexSecond &&
-            this.end.contains(first, second)) { // Obscure trivial case
+        if (this.endIndexFirst == startIndexFirst && this.endIndexSecond == startIndexSecond) { // Obscure trivial case
             this.start = this.end;
+            this.end.prev = null;
         } else {
-            this.start = new Node(first, second, this.current);
+            this.start = current;
         }
         this.current = null; // Mark as finished
         return this;
-    }
-
-    public Alignment fixStart(char c, boolean isFirst, int startIndexFirst, int startIndexSecond) {
-        return (isFirst) ?
-               fixStart(c, GAP, startIndexFirst, startIndexSecond) :
-               fixStart(GAP, c, startIndexFirst, startIndexSecond);
     }
 
     public boolean isFinished() {
@@ -138,5 +141,40 @@ public class Alignment {
             }
             return current;
         }
+    }
+
+    public char[][] toChars() {
+        if (!isFinished()) return null;
+
+        char[][] chars = new char[3][num];
+
+        Node current = this.start;
+        int at = 0;
+
+        while (current != null) {
+            chars[0][at] = current.first;
+            chars[1][at] = (current.first == current.second) ? '|' : ' ';
+            chars[2][at] = current.second;
+
+            current = current.next;
+            at++;
+        }
+
+        return chars;
+    }
+
+    @Override
+    public String toString() {
+        if (!isFinished()) return "";
+
+        char[][] chars = toChars();
+
+        StringBuilder sb = new StringBuilder(3*(num+1));
+
+        sb.append(chars[0]).append('\n');
+        sb.append(chars[1]).append('\n');
+        sb.append(chars[2]);
+
+        return sb.toString();
     }
 }
