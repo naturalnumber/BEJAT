@@ -3,6 +3,8 @@ package alignment;
 import sequence.Seq;
 
 public class Alignment {
+    private static final boolean DEBUG = false;
+
     public final static char GAP = '-';
 
     private       Node start, current, end;
@@ -14,6 +16,7 @@ public class Alignment {
     private final boolean isGlobal;
 
     public Alignment(int score, Seq first, Seq second, boolean isGlobal, int endIndexFirst, int endIndexSecond) { // , char endFirst, char endSecond
+        if (DEBUG) System.out.println(((isGlobal) ? "Global" : "Local")+" Alignment at "+endIndexFirst+", "+endIndexFirst+" with score "+score);
         this.score = score;
         this.first = first;
         this.second = second;
@@ -44,14 +47,17 @@ public class Alignment {
                 this.start = null;
             }
         }
+        if (DEBUG) System.out.println("Copied "+((isGlobal) ? "Global" : "Local")+" Alignment "+score);
     }
 
     public Alignment append(char first, char second) {
         if (isFinished()) return this;
         if (this.end == null) {
             this.current = this.end = new Node(first, second);
+            if (DEBUG) System.out.println("Starting with "+first+((first == second) ? "-" : " ")+second+" at "+num);
         } else {
             this.current = new Node(first, second, this.current);
+            if (DEBUG) System.out.println("Appending "+first+((first == second) ? "-" : " ")+second+" at "+num);
         }
         num++;
         return this;
@@ -97,11 +103,18 @@ public class Alignment {
             this.start = current;
         }
         this.current = null; // Mark as finished
+
+        if (DEBUG) System.out.println("Fixing start at "+startIndexFirst+", "+startIndexSecond+" with "+num);
+
         return this;
     }
 
     public boolean isFinished() {
-        return this.current == null;
+        return this.end != null && this.current == null;
+    }
+
+    public boolean isStarted() {
+        return this.num > 0;
     }
 
     private class Node {
@@ -113,10 +126,10 @@ public class Alignment {
             this.second = second;
         }
 
-        private Node(char first, char second, Node prev) {
+        private Node(char first, char second, Node next) {
             this(first, second);
-            this.prev = prev;
-            this.prev.next = this;
+            this.next = next;
+            this.next.prev = this;
         }
 
         private Node(Node toCopy) {
@@ -133,11 +146,11 @@ public class Alignment {
 
         private Node copyPath(Node toCopy) {
             if (toCopy == null) return null;
-            Node copyNext = toCopy.next;
+            Node copyNext = toCopy.prev;
             Node current = this;
             while (copyNext != null) {
                 current = new Node(copyNext, current);
-                copyNext = copyNext.next;
+                copyNext = copyNext.prev;
             }
             return current;
         }
@@ -155,6 +168,8 @@ public class Alignment {
             chars[0][at] = current.first;
             chars[1][at] = (current.first == current.second) ? '|' : ' ';
             chars[2][at] = current.second;
+
+            if (DEBUG) System.out.println("Evaluating col "+at+" as "+chars[0][at]+(" "+chars[1][at]+" ")+chars[2][at]);
 
             current = current.next;
             at++;

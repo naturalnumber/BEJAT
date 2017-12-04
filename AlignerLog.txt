@@ -1,0 +1,26 @@
+objc[1314]: Class JavaLaunchHelper is implemented in both /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/bin/java (0x10690f4c0) and /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre/lib/libinstrument.dylib (0x10797e4e0). One of the two will be used. Which one is undefined.
+Running...
+Simply scoring all...
+Running...
+Aligning globally...
+Aligning locally...
+Global Alignments: 11
+GAATTCAGTTA
+| | || |  |
+GGA-TC-G--A
+GAATTCAGTTA
+| || | |  |
+GGAT-C-G--A
+Local Alignments: 14
+GAATTC-A
+| | || |
+GGA-TCGA
+GAATTC-A
+| || | |
+GGAT-CGA
+GAATTCAG
+| | || |
+GGA-TC-G
+GAATTCAG
+| || | |
+GGAT-C-G

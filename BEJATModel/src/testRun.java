@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 import alignment.Alignment;
 import dp.DPAligner;
 import score.DNAScorerSimple;
@@ -16,6 +18,23 @@ public class testRun {
         DPAligner aligner = new DPAligner(first, second, scorer, true, true);
 
         aligner.run();
+
+        /*
+        System.out.println("Global Scores: "+aligner.getGlobalScore());
+
+        int[][] scores = aligner.getGlobalScores();
+
+        for (int i = 0; i <= second.length(); i++) {
+            System.out.println(Arrays.toString(scores[i]));
+        }
+
+        System.out.println("Local Scores: "+aligner.getLocalScore());
+
+        scores = aligner.getLocalScores();
+
+        for (int i = 0; i <= second.length(); i++) {
+            System.out.println(Arrays.toString(scores[i]));
+        }//*/
 
         System.out.println("Global Alignments: "+aligner.getGlobalScore());
 

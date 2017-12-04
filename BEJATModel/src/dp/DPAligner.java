@@ -222,7 +222,7 @@ public class DPAligner implements Runnable {
         lScoresN = this.localScores[0];
 
         for (int j = 1; j < H; j++) { // Second sequence
-            secondValue = second.charAt(j - 1);
+            secondValue = second.valueAt(j - 1);
 
             //  Initialize row
             gScores = this.globalScores[j];
@@ -311,7 +311,7 @@ public class DPAligner implements Runnable {
         gScoresN = this.globalScores[0];
 
         for (int j = 1; j < H; j++) { // Second sequence
-            secondValue = second.charAt(j - 1);
+            secondValue = second.valueAt(j - 1);
 
             //  Initialize row
             gScores = this.globalScores[j];
@@ -322,6 +322,8 @@ public class DPAligner implements Runnable {
                 //  Used multiple places
                 gScoreN = gScoresN[i];
 
+                //if (DEBUG) System.out.print("Position "+i+", "+j+" ("+firstValues[i]+":"+secondValue+") has SN="+gScoreN+" : SD="+gScoreD+" : SW="+gScoreW+" got w="+w+" m="+scorer.s(firstValues[i], secondValue));
+
                 //  Global scores
                 gGPN = gScoreN + w; // North
                 gMMM = gScoreD + scorer.s(firstValues[i], secondValue); // North West
@@ -329,6 +331,8 @@ public class DPAligner implements Runnable {
 
                 //  Score for current place
                 gScores[i] = gMax = max(gGPN, gMMM, gGPW);
+
+                //if (DEBUG) System.out.println(" has GN="+gGPN+" : MM="+gMMM+" : GW="+gGPW+" got "+gMax);
 
                 //  Check vertical gap
                 if (gMax == gGPN) addAdj(this.gAdjacency, j, i, GPN);
@@ -375,7 +379,7 @@ public class DPAligner implements Runnable {
         lScoresN = this.localScores[0];
 
         for (int j = 1; j < H; j++) { // Second sequence
-            secondValue = second.charAt(j - 1);
+            secondValue = second.valueAt(j - 1);
 
             //  Initialize row
             lScores = this.localScores[j];
@@ -538,7 +542,7 @@ public class DPAligner implements Runnable {
         boolean gp1, mmm, gp2, split, triple;
 
         while (i > 0 || j > 0) {
-            if (localScores[j][i] <= 0) {
+            if (localScores[j][i] <= 0 && a.isStarted()) {
                 a.fixStart(i, j);
                 return true;
             }
