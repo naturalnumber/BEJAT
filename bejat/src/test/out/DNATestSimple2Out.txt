@@ -1,0 +1,23 @@
+Running...
+Simply scoring global...
+Running...
+Aligning globally...
+Global Scores: 0
+[0, -1, -2, -3, -4, -5, -6]
+[-1, 1, 0, -1, -2, -3, -4]
+[-2, 0, 0, 1, 0, -1, -2]
+[-3, -1, -1, 0, 2, 1, 0]
+[-4, -2, -2, -1, 1, 1, 0]
+[-5, -3, -3, -1, 0, 0, 0]
+[-6, -4, -2, -2, -1, -1, 1]
+[-7, -5, -3, -1, -2, -2, 0]
+Global Alignments: 0
+GCA-TGC-
+| | | |
+G-ATTACA
+GCATG-C-
+| ||  |
+G-ATTACA
+GCAT-GC-
+| ||  |
+G-ATTACA

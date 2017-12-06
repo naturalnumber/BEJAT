@@ -1,5 +1,7 @@
 package dp;
 
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import alignment.Alignment;
@@ -9,10 +11,12 @@ import sequence.Seq;
 /**
  * https://en.wikipedia.org/wiki/Sequence_alignment
  * <p>
- * https://en.wikipedia.org/wiki/Dynamic_programming https://www.topcoder.com/community/data-science/data-science-tutorials/dynamic-programming-from-novice-to-advanced/
+ * https://en.wikipedia.org/wiki/Dynamic_programming
+ * https://www.topcoder.com/community/data-science/data-science-tutorials/dynamic-programming-from-novice-to-advanced/
  * https://www.codeproject.com/Articles/304772/DNA-Sequence-Alignment-using-Dynamic-Programming-A
  * <p>
- * https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm
+ * https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm
+ * https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm
  * <p>
  * https://en.wikipedia.org/wiki/Substitution_matrix
  */
@@ -656,7 +660,7 @@ public class DPAligner implements Runnable {
     }
 
     private static byte getAdj(long[][] gAdjacency, int j, int i) {
-        return (byte) ((gAdjacency[j][adjW(i)] >>> (3 * i)) & MSK) ;
+        return (byte) ((gAdjacency[j][adjW(i)] >>> (3 * adjR(i))) & MSK) ;
     }
 
     private static boolean hasAdj(long[][] gAdjacency, int j, int i, long[] flags) {
@@ -705,7 +709,7 @@ public class DPAligner implements Runnable {
         byte[][] adjacency = new byte[H][W];
 
         for (int j = 0; j < H; j++) for (int i = 0; i < W; i++) {
-            adjacency[j][i] = getAdj(gAdjacency, i, j);
+            adjacency[j][i] = getAdj(gAdjacency, j, i);
         }
 
         return adjacency;
@@ -715,7 +719,7 @@ public class DPAligner implements Runnable {
         byte[][] adjacency = new byte[H][W];
 
         for (int j = 0; j < H; j++) for (int i = 0; i < W; i++) {
-            adjacency[j][i] = getAdj(lAdjacency, i, j);
+            adjacency[j][i] = getAdj(lAdjacency, j, i);
         }
 
         return adjacency;
@@ -739,6 +743,69 @@ public class DPAligner implements Runnable {
         return lMax;
     }
 
+    public void printGlobalScores(OutputStream outStream, String d){
+        if (this.doGlobal && this.complete) scoresFile(this.globalScores, outStream, d);
+    }
+
+    public void printLocalScores(OutputStream outStream, String d){
+        if (this.doLocal && this.complete) scoresFile(this.localScores, outStream, d);
+    }
+
+    public void printGlobalAdjacency(OutputStream outStream, String d){
+        if (this.doGlobal && this.complete) adjacencyFile(getGlobalAdjacency(), outStream, d);
+    }
+
+    public void printLocalAdjacency(OutputStream outStream, String d){
+        if (this.doLocal && this.complete) adjacencyFile(getLocalAdjacency(), outStream, d);
+    }
+
+    private void scoresFile(int[][] scores, OutputStream outStream, String d) {
+        try (PrintWriter out = new PrintWriter(outStream)) {
+            //  Header
+            out.append("S\\F").append(d).append(Alignment.GAP);
+            for (int i = 0; i < F; i++) out.append(d).append(first.charAt(i));
+            out.println();
+
+            //  First line
+            out.append(Alignment.GAP);
+            for (int i = 0; i < W; i++) out.append(d).append(Integer.toString(scores[0][i]));
+            out.println();
+
+            for (int j = 1; j < H; j++) {
+                out.append(second.charAt(j-1));
+                for (int i = 0; i < W; i++) {
+                    out.append(d).append(Integer.toString(scores[j][i]));
+                }
+                out.println();
+            }
+
+            out.flush();
+        }
+    }
+
+    private void adjacencyFile(byte[][] adjacency, OutputStream outStream, String d) {
+        try (PrintWriter out = new PrintWriter(outStream)) {
+            //  Header
+            out.append("S\\F").append(d).append(Alignment.GAP);
+            for (int i = 0; i < F; i++) out.append(d).append(first.charAt(i));
+            out.println();
+
+            //  First line
+            out.append(Alignment.GAP);
+            for (int i = 0; i < W; i++) out.append(d).append(Integer.toString(adjacency[0][i]));
+            out.println();
+
+            for (int j = 1; j < H; j++) {
+                out.append(second.charAt(j-1));
+                for (int i = 0; i < W; i++) {
+                    out.append(d).append(Integer.toString(adjacency[j][i]));
+                }
+                out.println();
+            }
+
+            out.flush();
+        }
+    }
 
     //  Experimental
 

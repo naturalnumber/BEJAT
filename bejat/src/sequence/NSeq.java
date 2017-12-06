@@ -14,17 +14,22 @@ public abstract class NSeq extends Seq {
         super(header, sequence);
     }
 
+    @Override
     public byte[] getTranslations() {
         return TRANSLATION;
     }
+
+    @Override
     public byte getElementSize() {
         return ELEMENT_SIZE;
     }
 
+    @Override
     public int charToBinary(char c) {
         return interpret(c);
     }
 
+    @Override
     public long getLexiconLength() {
         return LEXICON_LENGTH;
     }
@@ -45,6 +50,8 @@ public abstract class NSeq extends Seq {
             case 'U':
             case 'u':
                 return 3;
+            //case MATRIX_PAD:
+            //    return 4;
             default:
                 throw new IllegalArgumentException("Invalid character: "+c);
         }

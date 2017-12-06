@@ -1,33 +1,30 @@
 package score;
 
-import sequence.DNASeq;
-
-public class DNAScorerMatrix extends DNAScorer {
-    private final int[][] scores;
+public class PScorerSimple extends PScorer {
+    private final int match;
+    private final int mismatch;
     private final int gapOpen;
     private final int gapExtend;
 
-    public DNAScorerMatrix(int[][] scores, int gap) {
-        this(scores, gap, gap);
+    public PScorerSimple(int match, int mismatch, int gap) {
+        this(match, mismatch, gap, gap);
     }
 
-    public DNAScorerMatrix(int[][] scores, int gapOpen, int gapExtend) {
-        if ( scores == null || scores.length != N || scores[0].length != N ) {
-            throw new IllegalArgumentException("Bad globalScores: "+scores);
-        }
-        this.scores = scores;
+    public PScorerSimple(int match, int mismatch, int gapOpen, int gapExtend) {
+        this.match = match;
+        this.mismatch = mismatch;
         this.gapOpen = gapOpen;
         this.gapExtend = gapExtend;
     }
 
     @Override
     public int s(char a, char b) {
-        return scores[DNASeq.interpret(a)][DNASeq.interpret(b)];
+        return (a == b) ? match : mismatch;
     }
 
     @Override
     public int s(int a, int b) {
-        return scores[a][b];
+        return (a == b) ? match : mismatch;
     }
 
     @Override

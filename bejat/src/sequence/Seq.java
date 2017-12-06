@@ -9,6 +9,7 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
 
     public static final byte WORD_SIZE = 64;
     public static final char INVALID = '?';
+    public static final char MATRIX_PAD = '*';
 
     protected final String header;
     protected final String sequence;

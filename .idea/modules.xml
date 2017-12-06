@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/BEJAT.iml" filepath="$PROJECT_DIR$/BEJAT.iml" />
-      <module fileurl="file://$PROJECT_DIR$/BEJATModel/BEJATModel.iml" filepath="$PROJECT_DIR$/BEJATModel/BEJATModel.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bejat/bejat.iml" filepath="$PROJECT_DIR$/bejat/bejat.iml" />
     </modules>
   </component>
 </project>

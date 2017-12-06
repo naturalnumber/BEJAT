@@ -1,3 +1,5 @@
+package test;
+
 import java.util.Arrays;
 
 import alignment.Alignment;
@@ -7,15 +9,15 @@ import score.Scorer;
 import sequence.DNASeq;
 import sequence.Seq;
 
-public class testRun {
+public class DNATestSimple3 {
 
     public static void main(String[] args) {
-        Seq first = new DNASeq("Test1", "GAATTCAGTTA");
-        Seq second = new DNASeq("Test2", "GGATCGA");
+        Seq first = new DNASeq("Wiki1", "TGTTACGG");
+        Seq second = new DNASeq("Wiki2", "GGTTGACTA");
 
-        Scorer scorer = new DNAScorerSimple(5, -3, -4);
+        Scorer scorer = new DNAScorerSimple(3, -3, -2);
 
-        DPAligner aligner = new DPAligner(first, second, scorer, true, true);
+        DPAligner aligner = new DPAligner(first, second, scorer, false, true);
 
         aligner.run();
 
@@ -26,26 +28,28 @@ public class testRun {
 
         for (int i = 0; i <= second.length(); i++) {
             System.out.println(Arrays.toString(scores[i]));
-        }
+        }//*/
+
 
         System.out.println("Local Scores: "+aligner.getLocalScore());
 
-        scores = aligner.getLocalScores();
+        int[][] scores = aligner.getLocalScores();
 
         for (int i = 0; i <= second.length(); i++) {
             System.out.println(Arrays.toString(scores[i]));
         }//*/
 
+        /*
         System.out.println("Global Alignments: "+aligner.getGlobalScore());
 
         for (Alignment a : aligner.getGlobalAlignments()) {
             System.out.println(a);
-        }
+        }//*/
 
         System.out.println("Local Alignments: "+aligner.getLocalScore());
 
         for (Alignment a : aligner.getLocalAlignments()) {
             System.out.println(a);
-        }
+        }//*/
     }
 }
