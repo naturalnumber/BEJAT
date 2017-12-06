@@ -123,6 +123,9 @@ public class DPAligner implements Runnable {
             scorer.initializeGlobal(this.globalScores);
 
             this.gAlignments = new ArrayList<>();
+
+            for (int i = 1; i < W; i++) addAdj(this.gAdjacency, 0, i, GPW);
+            for (int j = 1; j < H; j++) addAdj(this.gAdjacency, j, 0, GPN);
         } else {
             this.globalScores = null;
             this.gAdjacency = null;
@@ -138,6 +141,9 @@ public class DPAligner implements Runnable {
             //for (int[] ints : this.localScores) Arrays.fill(ints, 0); // Should be unnecessary
 
             this.lAlignments = new ArrayList<>();
+
+            for (int i = 1; i < W; i++) addAdj(this.lAdjacency, 0, i, GPW);
+            for (int j = 1; j < H; j++) addAdj(this.lAdjacency, j, 0, GPN);
         } else {
             this.localScores = null;
             this.lAdjacency = null;
