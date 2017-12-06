@@ -749,64 +749,111 @@ public class DPAligner implements Runnable {
         return lMax;
     }
 
-    public void printGlobalScores(OutputStream outStream, String d){
-        if (this.doGlobal && this.complete) scoresFile(this.globalScores, outStream, d);
+    public void printGlobalScores(OutputStream outStream, String d, String e){
+        if (this.doGlobal && this.complete) scoresFile(this.globalScores, outStream, d, e);
     }
 
-    public void printLocalScores(OutputStream outStream, String d){
-        if (this.doLocal && this.complete) scoresFile(this.localScores, outStream, d);
+    public void printLocalScores(OutputStream outStream, String d, String e){
+        if (this.doLocal && this.complete) scoresFile(this.localScores, outStream, d, e);
     }
 
-    public void printGlobalAdjacency(OutputStream outStream, String d){
-        if (this.doGlobal && this.complete) adjacencyFile(getGlobalAdjacency(), outStream, d);
+    public void printGlobalAdjacency(OutputStream outStream, String d, String e){
+        if (this.doGlobal && this.complete) adjacencyFile(getGlobalAdjacency(), outStream, d, e);
     }
 
-    public void printLocalAdjacency(OutputStream outStream, String d){
-        if (this.doLocal && this.complete) adjacencyFile(getLocalAdjacency(), outStream, d);
+    public void printLocalAdjacency(OutputStream outStream, String d, String e){
+        if (this.doLocal && this.complete) adjacencyFile(getLocalAdjacency(), outStream, d, e);
     }
 
-    private void scoresFile(int[][] scores, OutputStream outStream, String d) {
+    public void printGlobalAlignment(OutputStream outStream, String d, String e){
+        if (this.doGlobal && this.complete) alignmentFile(getGlobalAlignments(), outStream, d, e);
+    }
+
+    public void printLocalAlignment(OutputStream outStream, String d, String e){
+        if (this.doLocal && this.complete) alignmentFile(getLocalAlignments(), outStream, d, e);
+    }
+
+    private void scoresFile(int[][] scores, OutputStream outStream, String d, String e) {
+        d = (d == null) ? "" : d;
+        e = (e == null) ? "" : e;
+
         try (PrintWriter out = new PrintWriter(outStream)) {
             //  Header
             out.append("S\\F").append(d).append(Alignment.GAP);
             for (int i = 0; i < F; i++) out.append(d).append(first.charAt(i));
-            out.println();
+            out.print(e);
 
             //  First line
             out.append(Alignment.GAP);
             for (int i = 0; i < W; i++) out.append(d).append(Integer.toString(scores[0][i]));
-            out.println();
+            out.print(e);
 
             for (int j = 1; j < H; j++) {
                 out.append(second.charAt(j-1));
                 for (int i = 0; i < W; i++) {
                     out.append(d).append(Integer.toString(scores[j][i]));
                 }
-                out.println();
+                out.print(e);
             }
 
             out.flush();
         }
     }
 
-    private void adjacencyFile(byte[][] adjacency, OutputStream outStream, String d) {
+    private void adjacencyFile(byte[][] adjacency, OutputStream outStream, String d, String e) {
+        d = (d == null) ? "" : d;
+        e = (e == null) ? "" : e;
+
         try (PrintWriter out = new PrintWriter(outStream)) {
             //  Header
             out.append("S\\F").append(d).append(Alignment.GAP);
             for (int i = 0; i < F; i++) out.append(d).append(first.charAt(i));
-            out.println();
+            out.print(e);
 
             //  First line
             out.append(Alignment.GAP);
             for (int i = 0; i < W; i++) out.append(d).append(Integer.toString(adjacency[0][i]));
-            out.println();
+            out.print(e);
 
             for (int j = 1; j < H; j++) {
                 out.append(second.charAt(j-1));
                 for (int i = 0; i < W; i++) {
                     out.append(d).append(Integer.toString(adjacency[j][i]));
                 }
-                out.println();
+                out.print(e);
+            }
+
+            out.flush();
+        }
+    }
+
+    private void alignmentFile(ArrayList<Alignment> alignments, OutputStream outStream, String d, String e) {
+        d = (d == null) ? "" : d;
+        e = (e == null) ? "" : e;
+
+        try (PrintWriter out = new PrintWriter(outStream)) {
+            out.append(first.getHeader()).append(e).append("and").append(e).append(second.getHeader());
+            out.append(e).append("Score=").append(Integer.toString(alignments.get(0).getScore())).append(e);
+
+            String[] alignment;
+
+            for (Alignment a : alignments) {
+                alignment = a.toString().split("\n");
+
+                if (d.length() > 0) {
+                    for (int j = 0; j < alignment.length; j++) {
+                        out.append(e).append(alignment[j].charAt(0));
+                        for (int i = 1; i < alignment[j].length(); i++) {
+                            out.append(d).append(alignment[j].charAt(i));
+                        }
+                    }
+                } else {
+                    for (int j = 0; j < alignment.length; j++) {
+                        out.append(e).append(alignment[j]);
+                    }
+                }
+
+                out.append(e);
             }
 
             out.flush();

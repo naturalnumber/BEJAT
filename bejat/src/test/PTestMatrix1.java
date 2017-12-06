@@ -5,20 +5,21 @@ import java.util.Arrays;
 
 import alignment.Alignment;
 import dp.DPAligner;
-import score.DNAScorerSimple;
+import score.PScorerMatrix;
+import score.PScorerSimple;
 import score.Scorer;
-import sequence.DNASeq;
+import sequence.PSeq;
 import sequence.Seq;
 
-public class DNATestSimple1 {
+public class PTestMatrix1 {
 
     public static void main(String[] args) {
-        String name = "DNATestSimple1";
+        String name = "PTestMatrix1";
 
-        Seq first = new DNASeq("Test1", "GAATTCAGTTA");
-        Seq second = new DNASeq("Test2", "GGATCGA");
+        Seq first = new PSeq("Test1", "GAATTCAGTTA");
+        Seq second = new PSeq("Test2", "GGATCGA");
 
-        Scorer scorer = new DNAScorerSimple(5, -3, -4);
+        Scorer scorer = new PScorerMatrix("BLOSUM45", -10);
 
         DPAligner aligner = new DPAligner(first, second, scorer, true, true);
 

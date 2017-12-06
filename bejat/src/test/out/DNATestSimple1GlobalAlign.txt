@@ -1,0 +1,12 @@
+Test1
+and
+Test2
+Score=11
+
+G A A T T C A G T T A
+|   |   | |   |     |
+G G A - T C - G - - A
+
+G A A T T C A G T T A
+|   | |   |   |     |
+G G A T - C - G - - A

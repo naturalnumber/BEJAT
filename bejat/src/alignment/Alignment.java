@@ -117,6 +117,26 @@ public class Alignment {
         return this.num > 0;
     }
 
+    public Seq getFirst() {
+        return first;
+    }
+
+    public Seq getSecond() {
+        return second;
+    }
+
+    public int length() {
+        return num;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public boolean isGlobal() {
+        return isGlobal;
+    }
+
     private class Node {
         private final char first, second;
         private Node next, prev;

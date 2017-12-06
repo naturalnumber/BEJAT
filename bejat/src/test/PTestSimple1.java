@@ -55,13 +55,13 @@ public class PTestSimple1 {
         System.out.print("Printing files");
 
         try {
-            aligner.printGlobalScores(new FileOutputStream("./bejat/src/test/out/PTestSimple1Global.csv", false), ",");
+            aligner.printGlobalScores(new FileOutputStream("./bejat/src/test/out/PTestSimple1Global.csv", false), ",", "\n");
             System.out.print(".");
-            aligner.printGlobalAdjacency(new FileOutputStream("./bejat/src/test/out/PTestSimple1GlobalA.csv", false), ",");
+            aligner.printGlobalAdjacency(new FileOutputStream("./bejat/src/test/out/PTestSimple1GlobalA.csv", false), ",", "\n");
             System.out.print(".");
-            aligner.printLocalScores(new FileOutputStream("./bejat/src/test/out/PTestSimple1Local.csv", false), ",");
+            aligner.printLocalScores(new FileOutputStream("./bejat/src/test/out/PTestSimple1Local.csv", false), ",", "\n");
             System.out.print(".");
-            aligner.printLocalAdjacency(new FileOutputStream("./bejat/src/test/out/PTestSimple1LocalA.csv", false), ",");
+            aligner.printLocalAdjacency(new FileOutputStream("./bejat/src/test/out/PTestSimple1LocalA.csv", false), ",", "\n");
             System.out.print(".");
         } catch (Exception e) {
             e.printStackTrace();

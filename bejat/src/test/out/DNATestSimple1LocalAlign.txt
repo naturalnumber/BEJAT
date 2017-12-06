@@ -1,0 +1,20 @@
+Test1
+and
+Test2
+Score=14
+
+G A A T T C - A
+|   |   | |   |
+G G A - T C G A
+
+G A A T T C - A
+|   | |   |   |
+G G A T - C G A
+
+G A A T T C A G
+|   |   | |   |
+G G A - T C - G
+
+G A A T T C A G
+|   | |   |   |
+G G A T - C - G

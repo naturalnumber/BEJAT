@@ -1,6 +1,6 @@
 package score;
 
-import sequence.DNASeq;
+import sequence.PSeq;
 
 public class PScorerMatrix extends PScorer implements MatrixScorer {
     private final int[][] scores;
@@ -21,16 +21,16 @@ public class PScorerMatrix extends PScorer implements MatrixScorer {
     }
 
     public PScorerMatrix(String name, int gap) {
-        this(MatrixScorer.getStandard(name, DNASeq.TYPE), gap, gap);
+        this(MatrixScorer.getStandard(name, PSeq.TYPE), gap, gap);
     }
 
     public PScorerMatrix(String name, int gapOpen, int gapExtend) {
-        this(MatrixScorer.getStandard(name, DNASeq.TYPE), gapOpen, gapExtend);
+        this(MatrixScorer.getStandard(name, PSeq.TYPE), gapOpen, gapExtend);
     }
 
     @Override
     public int s(char a, char b) {
-        return scores[DNASeq.interpret(a)][DNASeq.interpret(b)];
+        return scores[PSeq.interpret(a)][PSeq.interpret(b)];
     }
 
     @Override
@@ -40,7 +40,7 @@ public class PScorerMatrix extends PScorer implements MatrixScorer {
 
     @Override
     public int min(char a) {
-        return scores[DNASeq.interpret(a)][N];
+        return scores[PSeq.interpret(a)][N];
     }
 
     @Override

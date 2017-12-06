@@ -1,0 +1,8 @@
+Test1
+and
+Test2
+Score=11
+
+G A A T
+|   | |
+G G A T
