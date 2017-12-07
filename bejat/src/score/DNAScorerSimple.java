@@ -33,13 +33,13 @@ public class DNAScorerSimple extends DNAScorer {
     }
 
     @Override
-    public boolean isSimpleGap() {
+    public boolean isConstantGap() {
         return gapOpen == gapExtend;
     }
 
     @Override
-    public boolean isSimpleExtension() {
-        return true;
+    public boolean isAffineGap() {
+        return gapOpen != gapExtend;
     }
 
     //  Supposed to override

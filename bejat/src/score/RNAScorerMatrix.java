@@ -1,17 +1,17 @@
 package score;
 
-import sequence.DNASeq;
+import sequence.RNASeq;
 
-public class DNAScorerMatrix extends DNAScorer implements MatrixScorer {
+public class RNAScorerMatrix extends RNAScorer implements MatrixScorer {
     private final int[][] scores;
     private final int gapOpen;
     private final int gapExtend;
 
-    public DNAScorerMatrix(int[][] scores, int gap) {
+    public RNAScorerMatrix(int[][] scores, int gap) {
         this(scores, gap, gap);
     }
 
-    public DNAScorerMatrix(int[][] scores, int gapOpen, int gapExtend) {
+    public RNAScorerMatrix(int[][] scores, int gapOpen, int gapExtend) {
         if ( scores == null || scores.length != N+1 || scores[0].length != N+1 ) {
             throw new IllegalArgumentException("Bad globalScores: "+scores);
         }
@@ -20,20 +20,20 @@ public class DNAScorerMatrix extends DNAScorer implements MatrixScorer {
         this.gapExtend = gapExtend;
     }
 
-    public DNAScorerMatrix(int similarity, int transition, int transversion, int gap) {
+    public RNAScorerMatrix(int similarity, int transition, int transversion, int gap) {
         this(toScores(similarity, transition, transversion), gap, gap);
     }
 
-    public DNAScorerMatrix(int similarity, int transition, int transversion, int gapOpen, int gapExtend) {
+    public RNAScorerMatrix(int similarity, int transition, int transversion, int gapOpen, int gapExtend) {
         this(toScores(similarity, transition, transversion), gapOpen, gapExtend);
     }
 
-    public DNAScorerMatrix(String name, int gap) {
-        this(MatrixScorer.getStandard(name, DNASeq.TYPE), gap, gap);
+    public RNAScorerMatrix(String name, int gap) {
+        this(MatrixScorer.getStandard(name, RNASeq.TYPE), gap, gap);
     }
 
-    public DNAScorerMatrix(String name, int gapOpen, int gapExtend) {
-        this(MatrixScorer.getStandard(name, DNASeq.TYPE), gapOpen, gapExtend);
+    public RNAScorerMatrix(String name, int gapOpen, int gapExtend) {
+        this(MatrixScorer.getStandard(name, RNASeq.TYPE), gapOpen, gapExtend);
     }
 
     private static int[][] toScores(int similarity, int transition, int transversion) {
@@ -45,20 +45,20 @@ public class DNAScorerMatrix extends DNAScorer implements MatrixScorer {
         }
         scores[4][4] = 1;
 
-        scores[DNASeq.interpret('A')][DNASeq.interpret('G')] =
-        scores[DNASeq.interpret('G')][DNASeq.interpret('A')] =
-        scores[DNASeq.interpret('C')][DNASeq.interpret('T')] =
-        scores[DNASeq.interpret('T')][DNASeq.interpret('C')] =
+        scores[RNASeq.interpret('A')][RNASeq.interpret('G')] =
+        scores[RNASeq.interpret('G')][RNASeq.interpret('A')] =
+        scores[RNASeq.interpret('C')][RNASeq.interpret('U')] =
+        scores[RNASeq.interpret('U')][RNASeq.interpret('C')] =
                 transition;
 
-        scores[DNASeq.interpret('A')][DNASeq.interpret('T')] =
-        scores[DNASeq.interpret('T')][DNASeq.interpret('A')] =
-        scores[DNASeq.interpret('A')][DNASeq.interpret('C')] =
-        scores[DNASeq.interpret('C')][DNASeq.interpret('A')] =
-        scores[DNASeq.interpret('G')][DNASeq.interpret('T')] =
-        scores[DNASeq.interpret('T')][DNASeq.interpret('G')] =
-        scores[DNASeq.interpret('G')][DNASeq.interpret('C')] =
-        scores[DNASeq.interpret('C')][DNASeq.interpret('G')] =
+        scores[RNASeq.interpret('A')][RNASeq.interpret('U')] =
+        scores[RNASeq.interpret('U')][RNASeq.interpret('A')] =
+        scores[RNASeq.interpret('A')][RNASeq.interpret('C')] =
+        scores[RNASeq.interpret('C')][RNASeq.interpret('A')] =
+        scores[RNASeq.interpret('G')][RNASeq.interpret('U')] =
+        scores[RNASeq.interpret('U')][RNASeq.interpret('G')] =
+        scores[RNASeq.interpret('G')][RNASeq.interpret('C')] =
+        scores[RNASeq.interpret('C')][RNASeq.interpret('G')] =
                 transversion;
 
         return scores;
@@ -66,7 +66,7 @@ public class DNAScorerMatrix extends DNAScorer implements MatrixScorer {
 
     @Override
     public int s(char a, char b) {
-        return scores[DNASeq.interpret(a)][DNASeq.interpret(b)];
+        return scores[RNASeq.interpret(a)][RNASeq.interpret(b)];
     }
 
     @Override
@@ -76,7 +76,7 @@ public class DNAScorerMatrix extends DNAScorer implements MatrixScorer {
 
     @Override
     public int min(char a) {
-        return scores[DNASeq.interpret(a)][N];
+        return scores[RNASeq.interpret(a)][N];
     }
 
     @Override

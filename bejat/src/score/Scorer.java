@@ -8,8 +8,8 @@ public abstract class Scorer {
     public abstract int w(int l);
     public abstract String getType();
     public abstract boolean sameType(Seq seq);
-    public abstract boolean isSimpleGap();
-    public abstract boolean isSimpleExtension();
+    public abstract boolean isConstantGap();
+    public abstract boolean isAffineGap();
 
     //  Should override
     public int[][] initializeGlobal(int[][] globalScores) {

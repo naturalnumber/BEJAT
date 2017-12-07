@@ -1,0 +1,12 @@
+Test1
+and
+Test2
+Score=11
+
+GAATTCAGTTA
+| | || |  |
+GGA-TC-G--A
+
+GAATTCAGTTA
+| || | |  |
+GGAT-C-G--A

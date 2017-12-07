@@ -1,16 +1,16 @@
 package score;
 
-public class PScorerSimple extends PScorer {
+public class RNAScorerSimple extends RNAScorer {
     private final int match;
     private final int mismatch;
     private final int gapOpen;
     private final int gapExtend;
 
-    public PScorerSimple(int match, int mismatch, int gap) {
+    public RNAScorerSimple(int match, int mismatch, int gap) {
         this(match, mismatch, gap, gap);
     }
 
-    public PScorerSimple(int match, int mismatch, int gapOpen, int gapExtend) {
+    public RNAScorerSimple(int match, int mismatch, int gapOpen, int gapExtend) {
         this.match = match;
         this.mismatch = mismatch;
         this.gapOpen = gapOpen;

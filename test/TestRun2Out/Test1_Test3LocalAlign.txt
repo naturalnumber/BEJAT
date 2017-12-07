@@ -1,0 +1,12 @@
+Test1
+and
+Test3
+Score=22
+
+GAATT-CA
+| ||| ||
+G-ATTACA
+
+GAATT-CA
+|| || ||
+GA-TTACA

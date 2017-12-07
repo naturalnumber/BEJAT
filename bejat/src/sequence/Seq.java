@@ -53,6 +53,10 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
     public String getHeader() {
         return header;
     }
+    public String getName() {
+        int i = header.indexOf(' ');
+        return (i > 0) ? header.substring(0, i) : header;
+    }
     public String getSequence() {
         return sequence;
     }

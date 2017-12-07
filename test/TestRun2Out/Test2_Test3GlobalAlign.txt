@@ -1,0 +1,20 @@
+Test2
+and
+Test3
+Score=9
+
+GGA-T-CGA
+ || | | |
+-GATTAC-A
+
+GGAT--CGA
+ |||  | |
+-GATTAC-A
+
+GGAT--CGA
+| ||  | |
+G-ATTAC-A
+
+GGA-T-CGA
+| | | | |
+G-ATTAC-A

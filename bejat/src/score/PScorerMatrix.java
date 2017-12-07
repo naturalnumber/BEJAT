@@ -54,13 +54,13 @@ public class PScorerMatrix extends PScorer implements MatrixScorer {
     }
 
     @Override
-    public boolean isSimpleGap() {
+    public boolean isConstantGap() {
         return gapOpen == gapExtend;
     }
 
     @Override
-    public boolean isSimpleExtension() {
-        return true;
+    public boolean isAffineGap() {
+        return gapOpen != gapExtend;
     }
 
     //  Supposed to override

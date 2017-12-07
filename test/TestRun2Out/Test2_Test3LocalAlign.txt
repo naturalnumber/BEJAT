@@ -1,0 +1,8 @@
+Test2
+and
+Test3
+Score=15
+
+GAT
+|||
+GAT

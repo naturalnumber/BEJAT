@@ -1,0 +1,20 @@
+Test1
+and
+Test2
+Score=14
+
+GAATTC-A
+| | || |
+GGA-TCGA
+
+GAATTC-A
+| || | |
+GGAT-CGA
+
+GAATTCAG
+| | || |
+GGA-TC-G
+
+GAATTCAG
+| || | |
+GGAT-C-G

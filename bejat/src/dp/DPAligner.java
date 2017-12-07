@@ -22,7 +22,7 @@ import sequence.Seq;
  */
 
 public class DPAligner implements Runnable {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private final static int WORD_SIZE = 64;
     private final static int N_PER     = 21;
@@ -164,7 +164,7 @@ public class DPAligner implements Runnable {
         while (!errored && doRun() && (!complete || !alligned)) {
             if (DEBUG) System.out.println("Running...");
             if (!complete) {
-                if (scorer.isSimpleGap()) {
+                if (scorer.isConstantGap()) {
                     if (doGlobal && doLocal) {
                         if (DEBUG) System.out.println("Simply scoring all...");
                         errored = !doAllSimple();
@@ -178,10 +178,24 @@ public class DPAligner implements Runnable {
                         errored = !doLocalSimple();
                         if (errored) System.err.println("Failed Local Scoring");
                     }
+                } else if (scorer.isAffineGap()) {
+                    if (doGlobal && doLocal) {
+                        if (DEBUG) System.out.println("Simply scoring all...");
+                        errored = !doAllAffine();
+                        if (errored) System.err.println("Failed Scoring");
+                    } else if (doGlobal) {
+                        if (DEBUG) System.out.println("Simply scoring global...");
+                        errored = !doGlobalAffine();
+                        if (errored) System.err.println("Failed Global Scoring");
+                    } else if (doLocal) {
+                        if (DEBUG) System.out.println("Simply scoring local...");
+                        errored = !doLocalAffine();
+                        if (errored) System.err.println("Failed Local Scoring");
+                    }
                 } else {
                     if (DEBUG) System.out.println("Bad scoring scheme...");
                     errored = true;
-                    throw new IllegalArgumentException("Complex gaps are experimental!");
+                    throw new IllegalArgumentException("Complex gaps are unsupported!");
                 }
                 this.complete = true;
             } else if (!alligned) {
@@ -430,6 +444,265 @@ public class DPAligner implements Runnable {
         return true;
     }
 
+    private boolean doAllAffine() {
+        if (scorer == null || first == null || second == null) return false;
+        if (this.globalScores == null || gAdjacency == null) return false;
+        if (this.localScores == null || lAdjacency == null) return false;
+
+        //  Constants
+        int v = scorer.w(0);
+        int u = scorer.w(1);
+
+        // Temp variables, Global
+        int   secondValue;
+        int   match, gMax, lMax;
+        int   gGPN, gScoreN, lGPN, lScoreN; // North
+        int   gMMM, gScoreD, lMMM, lScoreD; // Diagonal
+        int   gGPW, gScoreW, lGPW, lScoreW; // West
+        int[] gScores, lScores, gScoresN, lScoresN;
+        int[] firstValues = first.values(1);
+        boolean gWGap = false, gNGap = false;
+        boolean lWGap = false, lNGap = false;
+
+        //  scores[j][i] is H x W = A in size
+        //  0 row/column is done in initialization
+
+        //  Initialize run
+        gScoresN = this.globalScores[0];
+        lScoresN = this.localScores[0];
+
+        for (int j = 1; j < H; j++) { // Second sequence
+            secondValue = second.valueAt(j - 1);
+
+            //  Initialize row
+            gScores = this.globalScores[j];
+            lScores = this.localScores[j];
+            gScoreW = gScores[0];
+            lScoreW = lScores[0];
+            gScoreD = gScoresN[0];
+            lScoreD = lScoresN[0];
+            gWGap = lWGap = false;
+
+            for (int i = 1; i < W; i++) { // First sequence
+                //  Used multiple places
+                gScoreN = gScoresN[i];
+                gNGap = hasAdj(gAdjacency, j, i, GPN); // Could be further optimized
+                lScoreN = lScoresN[i];
+                lNGap = hasAdj(lAdjacency, j, i, GPN);
+
+                //  Match/Mismatch score
+                match = scorer.s(firstValues[i], secondValue);
+
+                //  Global scores
+                gGPN = gScoreN + ((gNGap) ? u : v); // North
+                gMMM = gScoreD + match; // North West
+                gGPW = gScoreW + ((gWGap) ? u : v); // West
+
+                //  Local scores
+                lGPN = lScoreN + ((lNGap) ? u : v); // North
+                lMMM = lScoreD + match; // North West
+                lGPW = lScoreW + ((lWGap) ? u : v); // West
+
+                //  Score for current place
+                gScores[i] = gMax = max(gGPN, gMMM, gGPW);
+                lScores[i] = lMax = max(lGPN, lMMM, lGPW, 0);
+
+                //  Check vertical gap
+                if (gMax == gGPN) addAdj(this.gAdjacency, j, i, GPN);
+
+                //  Check match/mismatch alignment
+                if (gMax == gMMM) addAdj(this.gAdjacency, j, i, MMM);
+
+                //  Check horizontal gap
+                if (gMax == gGPW) {
+                    addAdj(this.gAdjacency, j, i, GPW);
+                    gWGap = true;
+                } else {
+                    gWGap = false;
+                }
+
+                //  Check vertical gap
+                if (lMax == lGPN) addAdj(this.lAdjacency, j, i, GPN);
+
+                //  Check match/mismatch alignment
+                if (lMax == lMMM) addAdj(this.lAdjacency, j, i, MMM);
+
+                //  Check horizontal gap
+                if (lMax == lGPW) {
+                    addAdj(this.lAdjacency, j, i, GPW);
+                    lWGap = true;
+                } else {
+                    lWGap = false;
+                }
+
+                //  Prep for next
+                gScoreW = gMax;
+                lScoreW = lMax;
+                gScoreD = gScoreN;
+                lScoreD = lScoreN;
+            }
+
+            //  Shift values
+            gScoresN = gScores;
+            lScoresN = lScores;
+            this.done += F;
+        }
+
+        return true;
+    }
+
+    private boolean doGlobalAffine() {
+        if (scorer == null || first == null || second == null) return false;
+        if (this.globalScores == null || gAdjacency == null) return false;
+
+        //  Constants
+        int v = scorer.w(0);
+        int u = scorer.w(1);
+
+        // Temp variables, Global
+        int   secondValue;
+        int   match, gMax;
+        int   gGPN, gScoreN; // North
+        int   gMMM, gScoreD; // Diagonal
+        int   gGPW, gScoreW; // West
+        int[] gScores, gScoresN;
+        int[] firstValues = first.values(1);
+        boolean gWGap = false, gNGap = false;
+
+        //  scores[j][i] is H x W = A in size
+        //  0 row/column is done in initialization
+
+        //  Initialize run
+        gScoresN = this.globalScores[0];
+
+        for (int j = 1; j < H; j++) { // Second sequence
+            secondValue = second.valueAt(j - 1);
+
+            //  Initialize row
+            gScores = this.globalScores[j];
+            gScoreW = gScores[0];
+            gScoreD = gScoresN[0];
+            gWGap = false;
+
+            for (int i = 1; i < W; i++) { // First sequence
+                //  Used multiple places
+                gScoreN = gScoresN[i];
+                gNGap = hasAdj(gAdjacency, j, i, GPN); // Could be further optimized
+
+                //  Match/Mismatch score
+                match = scorer.s(firstValues[i], secondValue);
+
+                //  Global scores
+                gGPN = gScoreN + ((gNGap) ? u : v); // North
+                gMMM = gScoreD + match; // North West
+                gGPW = gScoreW + ((gWGap) ? u : v); // West
+
+                //  Score for current place
+                gScores[i] = gMax = max(gGPN, gMMM, gGPW);
+
+                //  Check vertical gap
+                if (gMax == gGPN) addAdj(this.gAdjacency, j, i, GPN);
+
+                //  Check match/mismatch alignment
+                if (gMax == gMMM) addAdj(this.gAdjacency, j, i, MMM);
+
+                //  Check horizontal gap
+                if (gMax == gGPW) {
+                    addAdj(this.gAdjacency, j, i, GPW);
+                    gWGap = true;
+                } else {
+                    gWGap = false;
+                }
+
+                //  Prep for next
+                gScoreW = gMax;
+                gScoreD = gScoreN;
+            }
+
+            //  Shift values
+            gScoresN = gScores;
+            this.done += F;
+        }
+
+        return true;
+    }
+
+    private boolean doLocalAffine() {
+        if (scorer == null || first == null || second == null) return false;
+        if (this.localScores == null || lAdjacency == null) return false;
+
+        //  Constants
+        int v = scorer.w(0);
+        int u = scorer.w(1);
+
+        // Temp variables, Global
+        int   secondValue;
+        int   match, lMax;
+        int   lGPN, lScoreN; // North
+        int   lMMM, lScoreD; // Diagonal
+        int   lGPW, lScoreW; // West
+        int[] lScores, lScoresN;
+        int[] firstValues = first.values(1);
+        boolean lWGap = false, lNGap = false;
+
+        //  scores[j][i] is H x W = A in size
+        //  0 row/column is done in initialization
+
+        //  Initialize run
+        lScoresN = this.localScores[0];
+
+        for (int j = 1; j < H; j++) { // Second sequence
+            secondValue = second.valueAt(j - 1);
+
+            //  Initialize row
+            lScores = this.localScores[j];
+            lScoreW = lScores[0];
+            lScoreD = lScoresN[0];
+            lWGap = false;
+
+            for (int i = 1; i < W; i++) { // First sequence
+                //  Used multiple places
+                lScoreN = lScoresN[i];
+                lNGap = hasAdj(lAdjacency, j, i, GPN);
+
+                //  Match/Mismatch score
+                match = scorer.s(firstValues[i], secondValue);
+
+                //  Local scores
+                lGPN = lScoreN + ((lNGap) ? u : v); // North
+                lMMM = lScoreD + match; // North West
+                lGPW = lScoreW + ((lWGap) ? u : v); // West
+
+                //  Score for current place
+                lScores[i] = lMax = max(lGPN, lMMM, lGPW, 0);
+
+                //  Check vertical gap
+                if (lMax == lGPN) addAdj(this.lAdjacency, j, i, GPN);
+
+                //  Check match/mismatch alignment
+                if (lMax == lMMM) addAdj(this.lAdjacency, j, i, MMM);
+
+                //  Check horizontal gap
+                if (lMax == lGPW) {
+                    addAdj(this.lAdjacency, j, i, GPW);
+                    lWGap = true;
+                } else {
+                    lWGap = false;
+                }
+
+                //  Prep for next
+                lScoreW = lMax;
+                lScoreD = lScoreN;
+            }
+
+            //  Shift values
+            lScoresN = lScores;
+            this.done += F;
+        }
+
+        return true;
+    }
+
     private boolean alignGlobal() {
         gMax = globalScores[S][F];
         return gAlignFrom(F, S, new Alignment(globalScores[S][F], first, second, true, F, S), gAlignments);
@@ -449,6 +722,7 @@ public class DPAligner implements Runnable {
             split = gp1 && mmm || mmm && gp2 || gp1 && gp2; // gp1 && gp2 impossible?
             triple = gp1 && mmm && gp2;
 
+            //  Need Affine correction?
             if (!split) { // basic
                 if (mmm) {
                     a.append(first.charAt(i-1), second.charAt(j-1));
@@ -563,6 +837,7 @@ public class DPAligner implements Runnable {
             split = gp1 && mmm || mmm && gp2 || gp1 && gp2; // gp1 && gp2 impossible?
             triple = gp1 && mmm && gp2;
 
+            //  Affine correction?
             if (!split) { // basic
                 if (mmm) {
                     a.append(first.charAt(i-1), second.charAt(j-1));
@@ -702,6 +977,14 @@ public class DPAligner implements Runnable {
     }
 
     //  Getters
+
+    public Seq getFirst() {
+        return first;
+    }
+
+    public Seq getSecond() {
+        return second;
+    }
 
     public int[][] getGlobalScores() {
         return globalScores;
@@ -862,112 +1145,6 @@ public class DPAligner implements Runnable {
     
     
 
-    private boolean doAllAffine() {
-        if (scorer == null || first == null || second == null) return false;
-        if (this.globalScores == null || gAdjacency == null) return false;
-        if (this.localScores == null || lAdjacency == null) return false;
-
-        //  Constants
-        int v = scorer.w(0);
-        int u = scorer.w(1);
-
-        // Temp variables, Global
-        int   secondValue;
-        int   match, gMax, lMax;
-        int   gGPN, gScoreN, lGPN, lScoreN; // North
-        int   gMMM, gScoreD, lMMM, lScoreD; // Diagonal
-        int   gGPW, gScoreW, lGPW, lScoreW; // West
-        int[] gScores, lScores, gScoresN, lScoresN;
-        int[] firstValues = first.values(1);
-        boolean gWGap = false, gNGap = false;
-        boolean lWGap = false, lNGap = false;
-
-        //  scores[j][i] is H x W = A in size
-        //  0 row/column is done in initialization
-
-        //  Initialize run
-        gScoresN = this.globalScores[0];
-        lScoresN = this.localScores[0];
-
-        for (int j = 1; j < H; j++) { // Second sequence
-            secondValue = second.valueAt(j - 1);
-
-            //  Initialize row
-            gScores = this.globalScores[j];
-            lScores = this.localScores[j];
-            gScoreW = gScores[0];
-            lScoreW = lScores[0];
-            gScoreD = gScoresN[0];
-            lScoreD = lScoresN[0];
-            gWGap = lWGap = false;
-
-            for (int i = 1; i < W; i++) { // First sequence
-                //  Used multiple places
-                gScoreN = gScoresN[i];
-                gNGap = hasAdj(gAdjacency, j, i, GPN); // Could be further optimized
-                lScoreN = lScoresN[i];
-                lNGap = hasAdj(lAdjacency, j, i, GPN);
-
-                //  Match/Mismatch score
-                match = scorer.s(firstValues[i], secondValue);
-
-                //  Global scores
-                gGPN = gScoreN + ((gNGap) ? u : v); // North
-                gMMM = gScoreD + match; // North West
-                gGPW = gScoreW + ((gWGap) ? u : v); // West
-
-                //  Local scores
-                lGPN = lScoreN + ((lNGap) ? u : v); // North
-                lMMM = lScoreD + match; // North West
-                lGPW = lScoreW + ((lWGap) ? u : v); // West
-
-                //  Score for current place
-                gScores[i] = gMax = max(gGPN, gMMM, gGPW);
-                lScores[i] = lMax = max(lGPN, lMMM, lGPW, 0);
-
-                //  Check vertical gap
-                if (gMax == gGPN) addAdj(this.gAdjacency, j, i, GPN);
-
-                //  Check match/mismatch alignment
-                if (gMax == gMMM) addAdj(this.gAdjacency, j, i, MMM);
-
-                //  Check horizontal gap
-                if (gMax == gGPW) {
-                    addAdj(this.gAdjacency, j, i, GPW);
-                    gWGap = true;
-                } else {
-                    gWGap = false;
-                }
-
-                //  Check vertical gap
-                if (lMax == lGPN) addAdj(this.lAdjacency, j, i, GPN);
-
-                //  Check match/mismatch alignment
-                if (lMax == lMMM) addAdj(this.lAdjacency, j, i, MMM);
-
-                //  Check horizontal gap
-                if (lMax == lGPW) {
-                    addAdj(this.lAdjacency, j, i, GPW);
-                    lWGap = true;
-                } else {
-                    lWGap = false;
-                }
-
-                //  Prep for next
-                gScoreW = gMax;
-                lScoreW = lMax;
-                gScoreD = gScoreN;
-                lScoreD = lScoreN;
-            }
-
-            //  Shift values
-            gScoresN = gScores;
-            lScoresN = lScores;
-            this.done += F;
-        }
-
-        return true;
-    }
 
     //  Experimental
 

@@ -60,6 +60,88 @@ public interface MatrixScorer {
         }
     }
 
+    static int[][] getNScoreFromInts(int gg, int aa, int cc, int tt, int ga, int gc, int gt, int ac, int at, int ct) {
+        int[][] scores = new int[5][5];
+
+        scores[DNASeq.interpret('G')][DNASeq.interpret('G')] = gg;
+        scores[DNASeq.interpret('A')][DNASeq.interpret('A')] = aa;
+        scores[DNASeq.interpret('C')][DNASeq.interpret('C')] = cc;
+        scores[DNASeq.interpret('T')][DNASeq.interpret('T')] = tt;
+
+        scores[DNASeq.interpret('A')][DNASeq.interpret('G')] =
+        scores[DNASeq.interpret('G')][DNASeq.interpret('A')] = ga;
+        scores[DNASeq.interpret('G')][DNASeq.interpret('C')] =
+        scores[DNASeq.interpret('C')][DNASeq.interpret('G')] = gc;
+        scores[DNASeq.interpret('G')][DNASeq.interpret('T')] =
+        scores[DNASeq.interpret('T')][DNASeq.interpret('G')] = gt;
+        scores[DNASeq.interpret('A')][DNASeq.interpret('C')] =
+        scores[DNASeq.interpret('C')][DNASeq.interpret('A')] = ac;
+        scores[DNASeq.interpret('A')][DNASeq.interpret('T')] =
+        scores[DNASeq.interpret('T')][DNASeq.interpret('A')] = at;
+        scores[DNASeq.interpret('C')][DNASeq.interpret('T')] =
+        scores[DNASeq.interpret('T')][DNASeq.interpret('C')] = ct;
+
+        for (int i = 0; i < 4; i++) {
+            scores[i][4] = scores[4][i] = Math.min(Math.min(scores[i][0], scores[i][1]),
+                                                   Math.min(scores[i][2], scores[i][3]));
+        }
+
+        scores[4][4] = 1;
+
+        return scores;
+    }
+
+    static boolean isScoreMatrixName(String name) {
+        switch (name.toUpperCase()) {
+            case "BLAST":
+                return true;
+            case "BLOSUM45":
+            case "BLOSUM50":
+            case "BLOSUM62":
+            case "BLOSUM80":
+            case "BLOSUM90":
+            case "PAM30":
+            case "PAM70":
+            case "PAM250":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    static boolean isRNAScoreMatrixName(String name) {
+        switch (name.toUpperCase()) {
+            case "BLAST":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    static boolean isDNAScoreMatrixName(String name) {
+        switch (name.toUpperCase()) {
+            case "BLAST":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    static boolean isPScoreMatrixName(String name) {
+        switch (name.toUpperCase()) {
+            case "BLOSUM45":
+            case "BLOSUM50":
+            case "BLOSUM62":
+            case "BLOSUM80":
+            case "BLOSUM90":
+            case "PAM30":
+            case "PAM70":
+            case "PAM250":
+                return true;
+            default:
+                return false;
+        }
+    }
 
     String[] DNA_MATRIX_LIST = {"BLAST"};
     String[] P_MATRIX_LIST = {"BLOSUM45", "BLOSUM50", "BLOSUM62", "BLOSUM80", "BLOSUM90", "PAM30", "PAM70", "PAM250"};

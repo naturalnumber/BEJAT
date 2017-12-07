@@ -1,0 +1,28 @@
+Test1
+and
+Test3
+Score=11
+
+GAATTCAGTTA
+| ||| |   |
+G-ATT-A--CA
+
+GAATTCAGTTA
+| ||| |   |
+G-ATT-A-C-A
+
+GAATTCAGTTA
+| ||| |   |
+G-ATT-AC--A
+
+GAATTCAGTTA
+|| || |   |
+GA-TT-AC--A
+
+GAATTCAGTTA
+|| || |   |
+GA-TT-A-C-A
+
+GAATTCAGTTA
+|| || |   |
+GA-TT-A--CA
