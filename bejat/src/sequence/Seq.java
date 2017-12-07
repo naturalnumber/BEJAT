@@ -13,6 +13,7 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
 
     protected final String header;
     protected final String sequence;
+    protected final String name;
     protected final int length;
     //protected final byte bits;
     //protected final byte density;
@@ -22,9 +23,11 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
     protected Seq(String header, String sequence) {
         if (sequence == null) throw new IllegalArgumentException("Null sequence");
 
-        this.header = (header != null) ? header : "";
         this.sequence = clean(this, sequence);
         this.length = this.sequence.length();
+        this.header = (header != null) ? header : Integer.toString(this.length);
+        int i = header.indexOf(' ');
+        this.name = nameClean((i > 0) ? header.substring(0, i) : header);
         //this.data = convert(this.sequence);
 
         //this.bits = getElementSize();
@@ -37,9 +40,11 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
     protected Seq(String header, String[] sequence) {
         if (sequence == null || sequence.length < 1) throw new IllegalArgumentException("Null sequence");
 
-        this.header = (header != null) ? header : "";
         this.sequence = clean(this, sequence);
         this.length = this.sequence.length();
+        this.header = (header != null) ? header : Integer.toString(this.length);
+        int i = header.indexOf(' ');
+        this.name = nameClean((i > 0) ? header.substring(0, i) : header);
         //this.data = convert(this.sequence);
 
         //this.bits = getElementSize();
@@ -55,7 +60,7 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
     }
     public String getName() {
         int i = header.indexOf(' ');
-        return (i > 0) ? header.substring(0, i) : header;
+        return (i > 0) ? nameClean(header.substring(0, i)) : header;
     }
     public String getSequence() {
         return sequence;
@@ -136,6 +141,13 @@ public abstract class Seq implements CharSequence, Serializable, Cloneable {
             sb.append(sequence[i]);
         }
         return sb.toString();
+    }
+
+    protected static String nameClean(String name) {
+        if (name == null || name.length() < 1) {
+            throw new InvalidParameterException("No name");
+        }
+        return name.replaceAll("[^A-Za-z0-9_-]", "");
     }
 
     //  CharSequence methods
