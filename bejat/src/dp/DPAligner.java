@@ -34,6 +34,8 @@ public class DPAligner implements Runnable {
     public final static byte MMM_F = 2; // Diagonal
     public final static byte GPW_F = 4; // West
 
+    public final static String[] ARROWS = {"⟳", "↑", "↖", "↑↖", "←", "↑←", "↖←", "↑↖←"};
+
     public final static byte MSK = 7; // All
 
     public final static long[] MASKS = getMasks();
@@ -141,9 +143,6 @@ public class DPAligner implements Runnable {
             //for (int[] ints : this.localScores) Arrays.fill(ints, 0); // Should be unnecessary
 
             this.lAlignments = new ArrayList<>();
-
-            for (int i = 1; i < W; i++) addAdj(this.lAdjacency, 0, i, GPW);
-            for (int j = 1; j < H; j++) addAdj(this.lAdjacency, j, 0, GPN);
         } else {
             this.localScores = null;
             this.lAdjacency = null;
@@ -1048,12 +1047,53 @@ public class DPAligner implements Runnable {
         if (this.doLocal && this.complete) adjacencyFile(getLocalAdjacency(), outStream, d, e);
     }
 
+    public void printGlobalArrows(OutputStream outStream, String d, String e){
+        if (this.doGlobal && this.complete) arrowFile(getGlobalAdjacency(), outStream, d, e);
+    }
+
+    public void printLocalArrows(OutputStream outStream, String d, String e){
+        if (this.doLocal && this.complete) arrowFile(getLocalAdjacency(), outStream, d, e);
+    }
+
     public void printGlobalAlignment(OutputStream outStream, String d, String e){
         if (this.doGlobal && this.complete) alignmentFile(getGlobalAlignments(), outStream, d, e);
     }
 
     public void printLocalAlignment(OutputStream outStream, String d, String e){
         if (this.doLocal && this.complete) alignmentFile(getLocalAlignments(), outStream, d, e);
+    }
+
+    private void alignmentFile(ArrayList<Alignment> alignments, OutputStream outStream, String d, String e) {
+        d = (d == null) ? "" : d;
+        e = (e == null) ? "" : e;
+
+        try (PrintWriter out = new PrintWriter(outStream)) {
+            out.append(first.getHeader()).append(e).append("and").append(e).append(second.getHeader());
+            out.append(e).append("Score=").append(Integer.toString(alignments.get(0).getScore())).append(e);
+
+            String[] alignment;
+
+            for (Alignment a : alignments) {
+                alignment = a.toString().split("\n");
+
+                if (d.length() > 0) {
+                    for (int j = 0; j < alignment.length; j++) {
+                        out.append(e).append(alignment[j].charAt(0));
+                        for (int i = 1; i < alignment[j].length(); i++) {
+                            out.append(d).append(alignment[j].charAt(i));
+                        }
+                    }
+                } else {
+                    for (int j = 0; j < alignment.length; j++) {
+                        out.append(e).append(alignment[j]);
+                    }
+                }
+
+                out.append(e);
+            }
+
+            out.flush();
+        }
     }
 
     private void scoresFile(int[][] scores, OutputStream outStream, String d, String e) {
@@ -1110,33 +1150,27 @@ public class DPAligner implements Runnable {
         }
     }
 
-    private void alignmentFile(ArrayList<Alignment> alignments, OutputStream outStream, String d, String e) {
+    private void arrowFile(byte[][] adjacency, OutputStream outStream, String d, String e) {
         d = (d == null) ? "" : d;
         e = (e == null) ? "" : e;
 
         try (PrintWriter out = new PrintWriter(outStream)) {
-            out.append(first.getHeader()).append(e).append("and").append(e).append(second.getHeader());
-            out.append(e).append("Score=").append(Integer.toString(alignments.get(0).getScore())).append(e);
+            //  Header
+            out.append("S\\F").append(d).append(Alignment.GAP);
+            for (int i = 0; i < F; i++) out.append(d).append(first.charAt(i));
+            out.print(e);
 
-            String[] alignment;
+            //  First line
+            out.append(Alignment.GAP);
+            for (int i = 0; i < W; i++) out.append(d).append(ARROWS[adjacency[0][i]]);
+            out.print(e);
 
-            for (Alignment a : alignments) {
-                alignment = a.toString().split("\n");
-
-                if (d.length() > 0) {
-                    for (int j = 0; j < alignment.length; j++) {
-                        out.append(e).append(alignment[j].charAt(0));
-                        for (int i = 1; i < alignment[j].length(); i++) {
-                            out.append(d).append(alignment[j].charAt(i));
-                        }
-                    }
-                } else {
-                    for (int j = 0; j < alignment.length; j++) {
-                        out.append(e).append(alignment[j]);
-                    }
+            for (int j = 1; j < H; j++) {
+                out.append(second.charAt(j-1));
+                for (int i = 0; i < W; i++) {
+                    out.append(d).append(ARROWS[adjacency[j][i]]);
                 }
-
-                out.append(e);
+                out.print(e);
             }
 
             out.flush();

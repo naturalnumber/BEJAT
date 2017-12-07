@@ -21,7 +21,7 @@ import sequence.RNASeq;
 import sequence.Seq;
 
 public class bejat {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final String DELIM             = "=";
     private static final String SEPARATOR         = ",";
     private static final String HEADER_FLAG       = ">";
@@ -31,6 +31,7 @@ public class bejat {
     private static final String P_PRINT_ALIGNMENT = "ALIGNMENT";
     private static final String P_PRINT_SCORES    = "SCORES";
     private static final String P_PRINT_ADJACENCY = "ADJACENCY";
+    private static final String P_PRINT_ARROWS    = "ARROWS";
     private static final String P_TYPE            = "TYPE";
     private static final String P_VALUE           = "VALUE";
     private static final String T_DNA             = "DNA";
@@ -42,9 +43,13 @@ public class bejat {
         ArrayList<Pair<String, DPAligner>> aligners        = new ArrayList<>();
         Scorer                             scorer          = null;
         String                             type            = null, input, caps, prev = "", argument;
-        boolean                            global          = false, local = false, hasPrev = false;
-        boolean                            printAlignments = true, printScores = false,
-                printAdjacency = false;
+        boolean                            global          = false;
+        boolean                            local           = false;
+        boolean                            hasPrev         = false;
+        boolean                            printAlignments = true;
+        boolean                            printScores     = false;
+        boolean                            printAdjacency  = false;
+        boolean                            printArrows     = false;
 
         int comment;
 
@@ -87,7 +92,7 @@ public class bejat {
                     if (caps.trim().equalsIgnoreCase("")) continue;
 
                     if (caps.contains(DELIM)) {
-                        argument = caps.substring(caps.indexOf(DELIM) + 1);
+                        argument = caps.substring(caps.indexOf(DELIM) + 1).replaceAll(" ", "");
                         if (caps.startsWith(P_DO_GLOBAL)) {
                             global = Boolean.valueOf(argument);
                         } else if (caps.startsWith(P_DO_LOCAL)) {
@@ -98,6 +103,8 @@ public class bejat {
                             printScores = Boolean.valueOf(argument);
                         } else if (caps.startsWith(P_PRINT_ADJACENCY)) {
                             printAdjacency = Boolean.valueOf(argument);
+                        } else if (caps.startsWith(P_PRINT_ARROWS)) {
+                            printArrows = Boolean.valueOf(argument);
                         } else if (caps.startsWith(P_TYPE)) {
                             if (type != null && type.length() > 0 &&
                                 !type.equalsIgnoreCase(argument.trim())) {
@@ -598,6 +605,32 @@ public class bejat {
                         } catch (Exception ignored) {
                             if (DEBUG) ignored.printStackTrace();
                             System.out.print("!");
+                        }
+                    }
+                    if (printArrows) {
+                        if (global) {
+                            try {
+                                aligner.printGlobalArrows(
+                                        new FileOutputStream("./" + name + "GlobalArrows.csv",
+                                                             false),
+                                        ",", "\n");
+                                System.out.print(".");
+                            } catch (Exception ignored) {
+                                if (DEBUG) ignored.printStackTrace();
+                                System.out.print("!");
+                            }
+                        }
+                        if (local) {
+                            try {
+                                aligner.printLocalArrows(
+                                        new FileOutputStream("./" + name + "LocalArrows.csv",
+                                                             false),
+                                        ",", "\n");
+                                System.out.print(".");
+                            } catch (Exception ignored) {
+                                if (DEBUG) ignored.printStackTrace();
+                                System.out.print("!");
+                            }
                         }
                     }
                 }

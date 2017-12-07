@@ -1,9 +1,10 @@
 TYPE=DNA
-VALUE=5,-3,-4
-GLOBAL=TRUE
-LOCAL=TRUE
-SCORES=TRUE
-ADJACENCY=TRUE
+VALUE=5,-3,-4 #This is a match score of 5, mismatch of -3, and constant gap of -4
+GLOBAL=TRUE #Perform a global alignment
+LOCAL=TRUE #Perform a local alignment
+SCORES=TRUE #Output the scores
+ADJACENCY=TRUE #Output the adjacency flags
+ARROWS=TRUE #Output the adjacency as arrows
 
 >Test1
 GAATTCAGTTA
