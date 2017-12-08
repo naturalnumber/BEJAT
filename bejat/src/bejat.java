@@ -21,7 +21,7 @@ import sequence.RNASeq;
 import sequence.Seq;
 
 public class bejat {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final String DELIM             = "=";
     private static final String SEPARATOR         = ",";
     private static final String HEADER_FLAG       = ">";
@@ -91,7 +91,7 @@ public class bejat {
 
                     if (caps.trim().equalsIgnoreCase("")) continue;
 
-                    if (caps.contains(DELIM)) {
+                    if (caps.contains(DELIM) && !caps.startsWith(HEADER_FLAG)) {
                         argument = caps.substring(caps.indexOf(DELIM) + 1).replaceAll(" ", "");
                         if (caps.startsWith(P_DO_GLOBAL)) {
                             global = Boolean.valueOf(argument);
@@ -496,6 +496,7 @@ public class bejat {
         if (sequences.size() < 2) {
             System.out.println("Unable to proceed with " + sequences.size() + " sequence" +
                                ((sequences.size() == 1) ? "" : "s") + ".");
+            if (DEBUG) System.out.println(sequences.get(0));
             System.exit(1);
         }
 
@@ -607,30 +608,30 @@ public class bejat {
                             System.out.print("!");
                         }
                     }
-                    if (printArrows) {
-                        if (global) {
-                            try {
-                                aligner.printGlobalArrows(
-                                        new FileOutputStream("./" + name + "GlobalArrows.csv",
-                                                             false),
-                                        ",", "\n");
-                                System.out.print(".");
-                            } catch (Exception ignored) {
-                                if (DEBUG) ignored.printStackTrace();
-                                System.out.print("!");
-                            }
+                }
+                if (printArrows) {
+                    if (global) {
+                        try {
+                            aligner.printGlobalArrows(
+                                    new FileOutputStream("./" + name + "GlobalArrows.csv",
+                                                         false),
+                                    ",", "\n");
+                            System.out.print(".");
+                        } catch (Exception ignored) {
+                            if (DEBUG) ignored.printStackTrace();
+                            System.out.print("!");
                         }
-                        if (local) {
-                            try {
-                                aligner.printLocalArrows(
-                                        new FileOutputStream("./" + name + "LocalArrows.csv",
-                                                             false),
-                                        ",", "\n");
-                                System.out.print(".");
-                            } catch (Exception ignored) {
-                                if (DEBUG) ignored.printStackTrace();
-                                System.out.print("!");
-                            }
+                    }
+                    if (local) {
+                        try {
+                            aligner.printLocalArrows(
+                                    new FileOutputStream("./" + name + "LocalArrows.csv",
+                                                         false),
+                                    ",", "\n");
+                            System.out.print(".");
+                        } catch (Exception ignored) {
+                            if (DEBUG) ignored.printStackTrace();
+                            System.out.print("!");
                         }
                     }
                 }

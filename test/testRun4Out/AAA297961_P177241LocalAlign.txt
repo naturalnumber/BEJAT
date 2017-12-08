@@ -1,0 +1,8 @@
+AAA29796.1 hemoglobin [Pseudoterranova decipiens]
+and
+P17724.1 RecName: Full=Group 1 truncated hemoglobin; Short=Truncated Hb; AltName: Full=Hemoglobin; AltName: Full=Myoglobin
+Score=28
+
+DHHEGEHKEEHH
+ |  |    | |
+NHYKGKNMTEAH
